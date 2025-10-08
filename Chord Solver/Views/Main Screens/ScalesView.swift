@@ -11,7 +11,6 @@ import SwiftUI
 struct ScalesView: View {
 
     @StateObject var viewModel = scalesViewModel()
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         scalesAnsView()

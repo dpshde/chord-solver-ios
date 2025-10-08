@@ -111,22 +111,6 @@ extension Color {
     /// Error state
     static let error = Color.red.opacity(0.8)
 
-    // MARK: - Dark Mode Variants
-
-    /// Dark mode variant of brand pink
-    static let brandPinkDark = Color(red: 0.85, green: 0.60, blue: 0.60)
-
-    /// Dark mode variant of brand coral (lightened for better readability)
-    static let brandCoralDark = Color(red: 0.92, green: 0.48, blue: 0.48)
-
-    /// Dark mode variant of brand purple
-    static let brandPurpleDark = Color(red: 0.60, green: 0.58, blue: 0.85)
-
-    /// Dark mode variant of brand aqua
-    static let brandAquaDark = Color(red: 0.50, green: 0.70, blue: 0.72)
-
-    /// Dark mode variant of brand beige
-    static let brandBeigeDark = Color(red: 0.25, green: 0.23, blue: 0.21)
 }
 
 // MARK: - App Section Enum
@@ -137,40 +121,4 @@ enum AppSection {
     case chords
     case scales
     case intervals
-}
-
-// MARK: - Color Scheme Aware Extension
-
-extension Color {
-    /// Returns the appropriate color based on current color scheme
-    static func adaptive(light: Color, dark: Color, colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? dark : light
-    }
-
-    // MARK: - Adaptive Brand Colors
-
-    /// Adaptive beige color for landing screen background
-    static func adaptiveBrandBeige(_ colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? brandBeigeDark : brandBeige
-    }
-
-    /// Adaptive coral color for chord identifier section
-    static func adaptiveBrandCoral(_ colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? brandCoralDark : brandCoral
-    }
-
-    /// Adaptive purple color for scales section
-    static func adaptiveBrandPurple(_ colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? brandPurpleDark : brandPurple
-    }
-
-    /// Adaptive aqua color for intervals section
-    static func adaptiveBrandAqua(_ colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? brandAquaDark : brandAqua
-    }
-
-    /// Adaptive pink color
-    static func adaptiveBrandPink(_ colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? brandPinkDark : brandPink
-    }
 }

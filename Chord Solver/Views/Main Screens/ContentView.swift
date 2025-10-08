@@ -12,7 +12,6 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @Environment(\.colorScheme) var colorScheme
     @State private var titleLettersAnimated = false
     @State private var cardsAnimated = false
 
@@ -31,13 +30,13 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Background with gradient overlay for depth (adaptive for dark mode)
-                Color.adaptiveBrandBeige(colorScheme)
+                // Background with gradient overlay for depth
+                Color.brandBeige
                     .overlay(
                         LinearGradient(
                             gradient: Gradient(colors: [
                                 Color.clear,
-                                Color.black.opacity(colorScheme == .dark ? 0.3 : 0.02)
+                                Color.black.opacity(0.02)
                             ]),
                             startPoint: .top,
                             endPoint: .bottom
@@ -67,7 +66,7 @@ struct ContentView: View {
 //                    Text("app by dylan shade")
 //                        .font(.caption)
 //                        .fontWeight(.bold)
-//                        .foregroundColor(colorScheme == .dark ? .textSecondary : Color.black.opacity(0.5))
+//                        .foregroundColor(Color.black.opacity(0.5))
 //                        .padding(.horizontal, Spacing.screenPadding)
 //                        .padding(.bottom, Spacing.xl)
 //                        .opacity(titleLettersAnimated ? 1 : 0)
@@ -77,7 +76,7 @@ struct ContentView: View {
                         VStack(spacing: Spacing.cardSpacing) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                    .foregroundColor(Color.adaptiveBrandCoral(colorScheme))
+                                    .foregroundColor(Color.brandCoral)
                                     .frame(height: Spacing.navigationCardHeight)
 
                                 Text("Chords")
@@ -88,7 +87,7 @@ struct ContentView: View {
 
                             ZStack {
                                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                    .foregroundColor(Color.adaptiveBrandPurple(colorScheme))
+                                    .foregroundColor(Color.brandPurple)
                                     .frame(height: Spacing.navigationCardHeight)
 
                                 Text("Scales")
@@ -99,7 +98,7 @@ struct ContentView: View {
 
                             ZStack {
                                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                    .foregroundColor(Color.adaptiveBrandAqua(colorScheme))
+                                    .foregroundColor(Color.brandAqua)
                                     .frame(height: Spacing.navigationCardHeight)
 
                                 Text("Intervals")
@@ -143,12 +142,11 @@ struct ContentView: View {
 struct AnimatedTitleText: View {
     let text: String
     let delay: Double
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         Text(text)
             .font(.displayHero)
-            .foregroundColor(colorScheme == .dark ? .textPrimary : .textOnBeige)
+            .foregroundColor(.textOnBeige)
     }
 }
 

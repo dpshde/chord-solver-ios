@@ -11,7 +11,6 @@ import SwiftUI
 struct MainTabView: View {
 
     @State private var selectedTab = 0
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(spacing: 0) {
@@ -61,7 +60,7 @@ struct MainTabView: View {
             }
             .padding(.top, 8)
             .background(
-                Color.adaptiveBrandBeige(colorScheme)
+                Color.brandBeige
                     .ignoresSafeArea(edges: .bottom)
             )
         }
@@ -106,12 +105,11 @@ struct CustomTabButton: View {
 
 struct ChordIdentifierContainerView: View {
     @StateObject var viewModel = triadBuildViewModel()
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color.adaptiveBrandBeige(colorScheme)
+                Color.brandBeige
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -129,12 +127,11 @@ struct ChordIdentifierContainerView: View {
 
 struct ScalesContainerView: View {
     @StateObject var viewModel = scalesViewModel()
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color.adaptiveBrandBeige(colorScheme)
+                Color.brandBeige
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -151,12 +148,11 @@ struct ScalesContainerView: View {
 }
 
 struct IntervalsContainerView: View {
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         NavigationView {
             ZStack {
-                Color.adaptiveBrandBeige(colorScheme)
+                Color.brandBeige
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
