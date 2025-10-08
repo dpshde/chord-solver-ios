@@ -65,6 +65,7 @@ struct MainTabView: View {
                     HapticManager.shared.selectionChanged()
                 }
             }
+            .padding(.top, 8)
             .background(
                 Color.darkBeige
                     .ignoresSafeArea(edges: .bottom)
@@ -88,23 +89,8 @@ struct CustomTabButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(isSelected ? .white : .textOnLight)
-
-                Text(label)
-                    .font(.caption2)
-                    .foregroundColor(isSelected ? .white : .textOnLight)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 12)
-            .padding(.horizontal, edgePosition == .none ? 4 : 0)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
+        ZStack {
+            // Full height background
             UnevenRoundedRectangle(
                 topLeadingRadius: edgePosition == .left ? 0 : 12,
                 bottomLeadingRadius: edgePosition == .left ? 0 : 12,
@@ -112,8 +98,26 @@ struct CustomTabButton: View {
                 topTrailingRadius: edgePosition == .right ? 0 : 12
             )
             .fill(isSelected ? textColor : Color.clear)
-        )
-        .buttonStyle(PlainButtonStyle())
+            .padding(.horizontal, edgePosition == .none ? 4 : 0)
+
+            // Button content
+            Button(action: action) {
+                VStack(spacing: 4) {
+                    Image(systemName: icon)
+                        .font(.system(size: 24))
+                        .foregroundColor(isSelected ? .white : .textOnLight)
+
+                    Text(label)
+                        .font(.caption2)
+                        .foregroundColor(isSelected ? .white : .textOnLight)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 12)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .frame(height: 72)
     }
 }
 
