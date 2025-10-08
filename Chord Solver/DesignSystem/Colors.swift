@@ -86,19 +86,19 @@ extension Color {
     // MARK: - Very Light Tints for Input Selections
 
     /// Very light coral tint for subtle selections (input buttons)
-    static let lightTintCoral = Color(red: 1.0, green: 0.95, blue: 0.95)
+    static let lightTintCoral = Color(red: 1.0, green: 0.92, blue: 0.92)
 
     /// Very light purple tint for subtle selections (input buttons)
-    static let lightTintPurple = Color(red: 0.96, green: 0.96, blue: 1.0)
+    static let lightTintPurple = Color(red: 0.93, green: 0.93, blue: 1.0)
 
     /// Very light aqua tint for subtle selections (input buttons)
-    static let lightTintAqua = Color(red: 0.95, green: 0.98, blue: 0.99)
+    static let lightTintAqua = Color(red: 0.90, green: 0.96, blue: 0.97)
 
     /// Neutral gray for non-selection buttons (like backspace)
     static let neutralGray = Color(red: 0.85, green: 0.85, blue: 0.85)
 
-    /// Subtle pastel red for backspace button
-    static let pastelRed = Color(red: 1.0, green: 0.93, blue: 0.93)
+    /// Darker grey for backspace button
+    static let pastelRed = Color(red: 0.75, green: 0.75, blue: 0.75)
 
     // MARK: - Text Colors
 
