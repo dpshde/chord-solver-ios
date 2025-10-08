@@ -144,7 +144,7 @@ struct IntervalView: View {
 
                 VStack(spacing: Spacing.md) {
                     Text(getIntervalLabel())
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
 
                     Text(intervalResult)

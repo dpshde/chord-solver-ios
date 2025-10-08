@@ -168,7 +168,7 @@ struct scalesAnsView: View {
 
                 VStack(spacing: Spacing.md) {
                     Text(getScaleLabel())
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
 
                     if viewModel.pentatonic {

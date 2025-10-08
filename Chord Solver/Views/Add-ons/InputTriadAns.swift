@@ -187,7 +187,7 @@ struct InputTriadAns: View {
 
                 VStack(spacing: Spacing.md) {
                     Text(getChordLabel())
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
 
                     HStack(spacing: Spacing.sm) {
