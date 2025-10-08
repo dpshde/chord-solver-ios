@@ -36,7 +36,7 @@ struct MainTabView: View {
                     icon: "music.note.list",
                     label: "Chords",
                     isSelected: selectedTab == 0,
-                    accentColor: .tabHighlightCoral,
+                    textColor: .brandCoral,
                     edgePosition: .left
                 ) {
                     selectedTab = 0
@@ -47,7 +47,7 @@ struct MainTabView: View {
                     icon: "music.quarternote.3",
                     label: "Scales",
                     isSelected: selectedTab == 1,
-                    accentColor: .tabHighlightPurple,
+                    textColor: .brandPurple,
                     edgePosition: .none
                 ) {
                     selectedTab = 1
@@ -58,7 +58,7 @@ struct MainTabView: View {
                     icon: "arrow.left.and.right",
                     label: "Intervals",
                     isSelected: selectedTab == 2,
-                    accentColor: .tabHighlightAqua,
+                    textColor: .brandAqua,
                     edgePosition: .right
                 ) {
                     selectedTab = 2
@@ -67,7 +67,7 @@ struct MainTabView: View {
             }
             .padding(.top, 8)
             .background(
-                Color.brandBeige
+                Color.darkBeige
                     .ignoresSafeArea(edges: .bottom)
             )
         }
@@ -84,7 +84,7 @@ struct CustomTabButton: View {
     let icon: String
     let label: String
     let isSelected: Bool
-    let accentColor: Color
+    let textColor: Color
     var edgePosition: TabEdgePosition = .none
     let action: () -> Void
 
@@ -93,24 +93,15 @@ struct CustomTabButton: View {
             VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 24))
-                    .foregroundColor(isSelected ? .textOnLight : .textOnLight)
+                    .foregroundColor(isSelected ? textColor : .textOnLight)
 
                 Text(label)
                     .font(.caption2)
-                    .foregroundColor(isSelected ? .textOnLight : .textOnLight)
+                    .foregroundColor(isSelected ? textColor : .textOnLight)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 8)
             .padding(.vertical, 12)
-            .background(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: edgePosition == .left ? 0 : 12,
-                    bottomLeadingRadius: edgePosition == .left ? 0 : 12,
-                    bottomTrailingRadius: edgePosition == .right ? 0 : 12,
-                    topTrailingRadius: edgePosition == .right ? 0 : 12
-                )
-                .fill(isSelected ? accentColor : Color.clear)
-            )
             .padding(.horizontal, edgePosition == .none ? 4 : 0)
         }
         .frame(height: 72)

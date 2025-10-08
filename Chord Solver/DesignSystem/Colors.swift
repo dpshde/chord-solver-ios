@@ -27,6 +27,9 @@ extension Color {
     /// Warm beige - Used for landing page
     static let brandBeige = Color(red: 0.94, green: 0.89, blue: 0.84)
 
+    /// Darker beige - Used for tab bar background to contrast with main beige
+    static let darkBeige = Color(red: 0.88, green: 0.82, blue: 0.76)
+
     // MARK: - Semantic Colors
 
     /// Primary background for each section (context-aware)
