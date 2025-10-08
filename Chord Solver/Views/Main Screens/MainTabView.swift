@@ -65,7 +65,6 @@ struct MainTabView: View {
                     HapticManager.shared.selectionChanged()
                 }
             }
-            .padding(.top, 8)
             .background(
                 Color.darkBeige
                     .ignoresSafeArea(edges: .bottom)
@@ -99,21 +98,21 @@ struct CustomTabButton: View {
                     .font(.caption2)
                     .foregroundColor(isSelected ? .white : .textOnLight)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, 8)
             .padding(.vertical, 12)
-            .background(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: edgePosition == .left ? 0 : 12,
-                    bottomLeadingRadius: edgePosition == .left ? 0 : 12,
-                    bottomTrailingRadius: edgePosition == .right ? 0 : 12,
-                    topTrailingRadius: edgePosition == .right ? 0 : 12
-                )
-                .fill(isSelected ? textColor : Color.clear)
-            )
             .padding(.horizontal, edgePosition == .none ? 4 : 0)
         }
-        .frame(height: 72)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            UnevenRoundedRectangle(
+                topLeadingRadius: edgePosition == .left ? 0 : 12,
+                bottomLeadingRadius: edgePosition == .left ? 0 : 12,
+                bottomTrailingRadius: edgePosition == .right ? 0 : 12,
+                topTrailingRadius: edgePosition == .right ? 0 : 12
+            )
+            .fill(isSelected ? textColor : Color.clear)
+        )
         .buttonStyle(PlainButtonStyle())
     }
 }
