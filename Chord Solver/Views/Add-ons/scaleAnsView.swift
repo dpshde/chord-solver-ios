@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct scalesAnsView: View {
-    
+
     @EnvironmentObject var viewModel: scalesViewModel
     @Environment(\.colorScheme) var colorScheme
 
     @State var offset = CGSize.zero
     @State var root: String = ""
     @State var triad: Bool = true
+    @State private var showingKeyboard = false
     
     let notesArr: [String] = [
         "A###","B#", "C", "Dbb",
@@ -34,15 +35,32 @@ struct scalesAnsView: View {
     var body: some View {
         VStack {
             HStack {
-                ZStack {
-                    RoundedRectangle.init(cornerRadius: 10.0)
-                        .frame(maxWidth: 350, maxHeight: 50, alignment: .center)
-                        .foregroundColor(.white)
-                    TextField("Enter a note:", text: $viewModel.root)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: 350, maxHeight: 70, alignment: .center)
-                        .padding()
+                // Custom keyboard toggle button
+                Button(action: {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                        showingKeyboard.toggle()
+                    }
+                    let generator = UIImpactFeedbackGenerator(style: .light)
+                    generator.impactOccurred()
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10.0)
+                            .frame(maxWidth: 350, maxHeight: 50)
+                            .foregroundColor(.white)
+
+                        Text(viewModel.root.isEmpty ? "Tap to enter note" : viewModel.root)
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(viewModel.root.isEmpty ? .gray.opacity(0.6) : .black)
+                    }
                 }
+                .buttonStyle(PlainButtonStyle())
+            }
+
+            // Custom note picker keyboard
+            if showingKeyboard {
+                ScaleNotePickerKeyboard(noteText: $viewModel.root)
+                    .frame(height: 180)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
         ScrollView(.horizontal, showsIndicators: false) {
@@ -429,6 +447,168 @@ struct scalesAnsView: View {
         .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 0, idealHeight: 100, maxHeight: .infinity, alignment: .center)
         .animation(.easeInOut)
 
+    }
+}
+
+// MARK: - Scale Note Picker Keyboard
+struct ScaleNotePickerKeyboard: View {
+
+    @Binding var noteText: String
+    @State private var pressedButton: String? = nil
+
+    private let naturalNotes = ["C", "D", "E", "F", "G", "A", "B"]
+    private let accidentals = ["♯", "♭", "×", "♮"]
+
+    var body: some View {
+        VStack(spacing: 12) {
+
+            // Display current input
+            HStack {
+                Text(noteText.isEmpty ? "Tap notes below" : noteText)
+                    .font(.system(size: 24, weight: .semibold, design: .monospaced))
+                    .foregroundColor(noteText.isEmpty ? .white.opacity(0.5) : .white)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                // Clear button
+                if !noteText.isEmpty {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            noteText = ""
+                        }
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.1))
+            )
+
+            // Natural notes (C D E F G A B)
+            HStack(spacing: 8) {
+                ForEach(naturalNotes, id: \.self) { note in
+                    ScaleNoteButton(
+                        label: note,
+                        isPressed: pressedButton == note
+                    ) {
+                        appendNote(note)
+                    }
+                }
+            }
+
+            // Accidentals (# b)
+            HStack(spacing: 8) {
+                ScaleNoteButton(
+                    label: "♯",
+                    isPressed: pressedButton == "♯",
+                    backgroundColor: Color.white.opacity(0.15)
+                ) {
+                    appendAccidental("#")
+                }
+
+                ScaleNoteButton(
+                    label: "♭",
+                    isPressed: pressedButton == "♭",
+                    backgroundColor: Color.white.opacity(0.15)
+                ) {
+                    appendAccidental("b")
+                }
+
+                Spacer()
+
+                // Backspace button
+                ScaleNoteButton(
+                    label: "⌫",
+                    isPressed: pressedButton == "⌫",
+                    backgroundColor: Color.red.opacity(0.3)
+                ) {
+                    backspace()
+                }
+            }
+        }
+        .padding()
+    }
+
+    private func appendNote(_ note: String) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            noteText = note
+        }
+
+        pressedButton = note
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            pressedButton = nil
+        }
+
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+    }
+
+    private func appendAccidental(_ accidental: String) {
+        if !noteText.isEmpty && noteText.filter({ $0 == "#" || $0 == "b" }).count < 3 {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                noteText += accidental
+            }
+        }
+
+        pressedButton = accidental == "#" ? "♯" : "♭"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            pressedButton = nil
+        }
+
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
+    }
+
+    private func backspace() {
+        if !noteText.isEmpty {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                noteText.removeLast()
+            }
+        }
+
+        pressedButton = "⌫"
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            pressedButton = nil
+        }
+
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.impactOccurred()
+    }
+}
+
+// MARK: - Scale Note Button
+struct ScaleNoteButton: View {
+    let label: String
+    let isPressed: Bool
+    var backgroundColor: Color = Color.white.opacity(0.2)
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(backgroundColor)
+                        .shadow(
+                            color: Color.black.opacity(isPressed ? 0.3 : 0.1),
+                            radius: isPressed ? 2 : 4,
+                            x: 0,
+                            y: isPressed ? 1 : 2
+                        )
+                )
+                .scaleEffect(isPressed ? 0.95 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

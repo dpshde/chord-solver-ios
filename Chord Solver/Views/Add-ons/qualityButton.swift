@@ -3,27 +3,36 @@
 //  ChordSolver (iOS)
 //
 //  Created by Dylan Shade on 4/13/21.
+//  Refactored on 10/8/25 - Added animations and haptics
 //
 
 import SwiftUI
 
 struct qualityButton: View {
-    
+
     @EnvironmentObject var viewModel: triadBuildViewModel
 
     var name: String = "Major"
     @State var active: Bool = false
-    
+    @State private var isPressed = false
+
+    // Colors
+    private let activeColor = Color(red: 0.96, green: 0.75, blue: 0.75)
+    private let inactiveColor = Color(red: 1.0, green: 0.44, blue: 0.44)
+
     var body: some View {
-        ZStack {
-            Button(name) {
-                
+        Button(action: {
+            // Haptic feedback
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.impactOccurred()
+
+            // Execute action with animation
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 switch name {
                     case "Major":
                         active.toggle()
                         viewModel.resetButtons()
                         viewModel.major.toggle()
-
                     case "Minor":
                         active.toggle()
                         viewModel.resetButtons()
@@ -84,15 +93,27 @@ struct qualityButton: View {
                         active.toggle()
                         viewModel.resetButtons()
                         viewModel.ct7.toggle()
-                        
                     default:
                         active.toggle()
                         viewModel.resetButtons()
                         viewModel.major = true
                 }
-            }.foregroundColor(.white)
-
+            }
+        }) {
+            Text(name)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
         }
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .onLongPressGesture(
+            minimumDuration: .infinity,
+            pressing: { pressing in
+                isPressed = pressing
+            },
+            perform: {}
+        )
     }
 }
 

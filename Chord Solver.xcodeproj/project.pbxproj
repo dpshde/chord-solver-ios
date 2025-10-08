@@ -7,41 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D24FCCE4269B6DAF00C115BE /* ChordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24FCCE3269B6DAF00C115BE /* ChordView.swift */; };
-		D24FCCE8269B6DB500C115BE /* ChordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24FCCE3269B6DAF00C115BE /* ChordView.swift */; };
-		D24FCCE9269B6DB500C115BE /* ChordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24FCCE3269B6DAF00C115BE /* ChordView.swift */; };
+		AA47DBA02E96C754009B1967 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DB9E2E96C754009B1967 /* Typography.swift */; };
+		AA47DBA12E96C754009B1967 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DB9C2E96C754009B1967 /* Colors.swift */; };
+		AA47DBA22E96C754009B1967 /* Spacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DB9D2E96C754009B1967 /* Spacing.swift */; };
+		AA47DBA32E96C754009B1967 /* Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DB9B2E96C754009B1967 /* Animations.swift */; };
+		AA47DBA82E96C761009B1967 /* FeatureButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBA52E96C761009B1967 /* FeatureButton.swift */; };
+		AA47DBA92E96C761009B1967 /* EnhancedInputField.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBA42E96C761009B1967 /* EnhancedInputField.swift */; };
+		AA47DBAA2E96C761009B1967 /* NavigationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBA62E96C761009B1967 /* NavigationCard.swift */; };
+		AA47DBAD2E96C76E009B1967 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBAB2E96C76E009B1967 /* HapticManager.swift */; };
+		AA47DBBF2E96C776009B1967 /* NotePickerKeyboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB12E96C776009B1967 /* NotePickerKeyboard.swift */; };
+		AA47DBC02E96C776009B1967 /* InputTriadAns.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB02E96C776009B1967 /* InputTriadAns.swift */; };
+		AA47DBC12E96C776009B1967 /* scaleButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB42E96C776009B1967 /* scaleButtons.swift */; };
+		AA47DBC22E96C776009B1967 /* IntervalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB92E96C776009B1967 /* IntervalView.swift */; };
+		AA47DBC32E96C776009B1967 /* InputChordSolveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBAF2E96C776009B1967 /* InputChordSolveView.swift */; };
+		AA47DBC42E96C776009B1967 /* ScalesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBBB2E96C776009B1967 /* ScalesView.swift */; };
+		AA47DBC52E96C776009B1967 /* scaleAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB32E96C776009B1967 /* scaleAnsView.swift */; };
+		AA47DBC62E96C776009B1967 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB82E96C776009B1967 /* ContentView.swift */; };
+		AA47DBC72E96C776009B1967 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBBA2E96C776009B1967 /* MainTabView.swift */; };
+		AA47DBC82E96C776009B1967 /* TriadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBBC2E96C776009B1967 /* TriadView.swift */; };
+		AA47DBC92E96C776009B1967 /* InputAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBAE2E96C776009B1967 /* InputAnsView.swift */; };
+		AA47DBCA2E96C776009B1967 /* qualityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB22E96C776009B1967 /* qualityButton.swift */; };
+		AA47DBCB2E96C776009B1967 /* ChordSolverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB62E96C776009B1967 /* ChordSolverView.swift */; };
+		AA47DBCC2E96C776009B1967 /* ChordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBB72E96C776009B1967 /* ChordView.swift */; };
 		D283F3C2262CCDF60069AF23 /* Chord_SolverApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3C1262CCDF60069AF23 /* Chord_SolverApp.swift */; };
-		D283F3C4262CCDF60069AF23 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3C3262CCDF60069AF23 /* ContentView.swift */; };
 		D283F3C6262CCDF70069AF23 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D283F3C5262CCDF70069AF23 /* Assets.xcassets */; };
 		D283F3C9262CCDF70069AF23 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D283F3C8262CCDF70069AF23 /* Preview Assets.xcassets */; };
 		D283F3D4262CCDF70069AF23 /* Chord_SolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3D3262CCDF70069AF23 /* Chord_SolverTests.swift */; };
 		D283F3DF262CCDF70069AF23 /* Chord_SolverUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3DE262CCDF70069AF23 /* Chord_SolverUITests.swift */; };
-		D283F3F0262CCE2F0069AF23 /* IntervalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3EF262CCE2F0069AF23 /* IntervalView.swift */; };
-		D283F3F5262CCE4D0069AF23 /* ScalesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3F4262CCE4D0069AF23 /* ScalesView.swift */; };
-		D283F3FA262CCE6B0069AF23 /* TriadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3F9262CCE6B0069AF23 /* TriadView.swift */; };
-		D283F3FF262CCE910069AF23 /* InputAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3FE262CCE910069AF23 /* InputAnsView.swift */; };
-		D283F415262CCE9D0069AF23 /* InputAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3FE262CCE910069AF23 /* InputAnsView.swift */; };
-		D283F416262CCE9D0069AF23 /* IntervalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3EF262CCE2F0069AF23 /* IntervalView.swift */; };
-		D283F417262CCE9D0069AF23 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3C3262CCDF60069AF23 /* ContentView.swift */; };
-		D283F418262CCE9D0069AF23 /* ScalesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3F4262CCE4D0069AF23 /* ScalesView.swift */; };
-		D283F419262CCE9D0069AF23 /* TriadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3F9262CCE6B0069AF23 /* TriadView.swift */; };
-		D283F427262CCE9F0069AF23 /* InputAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3FE262CCE910069AF23 /* InputAnsView.swift */; };
-		D283F428262CCE9F0069AF23 /* IntervalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3EF262CCE2F0069AF23 /* IntervalView.swift */; };
-		D283F429262CCE9F0069AF23 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3C3262CCDF60069AF23 /* ContentView.swift */; };
-		D283F42A262CCE9F0069AF23 /* ScalesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3F4262CCE4D0069AF23 /* ScalesView.swift */; };
-		D283F42B262CCE9F0069AF23 /* TriadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F3F9262CCE6B0069AF23 /* TriadView.swift */; };
-		D283F430262CCEC70069AF23 /* InputTriadAns.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F42F262CCEC70069AF23 /* InputTriadAns.swift */; };
-		D283F431262CCEC70069AF23 /* InputTriadAns.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F42F262CCEC70069AF23 /* InputTriadAns.swift */; };
-		D283F432262CCEC70069AF23 /* InputTriadAns.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F42F262CCEC70069AF23 /* InputTriadAns.swift */; };
-		D283F437262CCED50069AF23 /* qualityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F436262CCED50069AF23 /* qualityButton.swift */; };
-		D283F438262CCED50069AF23 /* qualityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F436262CCED50069AF23 /* qualityButton.swift */; };
-		D283F439262CCED50069AF23 /* qualityButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F436262CCED50069AF23 /* qualityButton.swift */; };
-		D283F43E262CCEFA0069AF23 /* scaleButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F43D262CCEFA0069AF23 /* scaleButtons.swift */; };
-		D283F43F262CCEFA0069AF23 /* scaleButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F43D262CCEFA0069AF23 /* scaleButtons.swift */; };
-		D283F440262CCEFA0069AF23 /* scaleButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F43D262CCEFA0069AF23 /* scaleButtons.swift */; };
-		D283F445262CCF110069AF23 /* scaleAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F444262CCF110069AF23 /* scaleAnsView.swift */; };
-		D283F446262CCF110069AF23 /* scaleAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F444262CCF110069AF23 /* scaleAnsView.swift */; };
-		D283F447262CCF110069AF23 /* scaleAnsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F444262CCF110069AF23 /* scaleAnsView.swift */; };
 		D283F44C262CCF340069AF23 /* AnswerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F44B262CCF340069AF23 /* AnswerViewModel.swift */; };
 		D283F44D262CCF340069AF23 /* AnswerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F44B262CCF340069AF23 /* AnswerViewModel.swift */; };
 		D283F44E262CCF340069AF23 /* AnswerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F44B262CCF340069AF23 /* AnswerViewModel.swift */; };
@@ -63,9 +55,6 @@
 		D283F484262CD06F0069AF23 /* triadInts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F483262CD06F0069AF23 /* triadInts.swift */; };
 		D283F485262CD06F0069AF23 /* triadInts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F483262CD06F0069AF23 /* triadInts.swift */; };
 		D283F486262CD06F0069AF23 /* triadInts.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F483262CD06F0069AF23 /* triadInts.swift */; };
-		D283F4AD262CD2EF0069AF23 /* InputChordSolveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F4AC262CD2EF0069AF23 /* InputChordSolveView.swift */; };
-		D283F4AE262CD2EF0069AF23 /* InputChordSolveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F4AC262CD2EF0069AF23 /* InputChordSolveView.swift */; };
-		D283F4AF262CD2EF0069AF23 /* InputChordSolveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F4AC262CD2EF0069AF23 /* InputChordSolveView.swift */; };
 		D283F4B4262CD30D0069AF23 /* chordSolverVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F4B3262CD30D0069AF23 /* chordSolverVM.swift */; };
 		D283F4B5262CD30D0069AF23 /* chordSolverVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F4B3262CD30D0069AF23 /* chordSolverVM.swift */; };
 		D283F4B6262CD30D0069AF23 /* chordSolverVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = D283F4B3262CD30D0069AF23 /* chordSolverVM.swift */; };
@@ -92,10 +81,30 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		D24FCCE3269B6DAF00C115BE /* ChordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordView.swift; sourceTree = "<group>"; };
+		AA47DB9B2E96C754009B1967 /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
+		AA47DB9C2E96C754009B1967 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
+		AA47DB9D2E96C754009B1967 /* Spacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spacing.swift; sourceTree = "<group>"; };
+		AA47DB9E2E96C754009B1967 /* Typography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Typography.swift; sourceTree = "<group>"; };
+		AA47DBA42E96C761009B1967 /* EnhancedInputField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedInputField.swift; sourceTree = "<group>"; };
+		AA47DBA52E96C761009B1967 /* FeatureButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureButton.swift; sourceTree = "<group>"; };
+		AA47DBA62E96C761009B1967 /* NavigationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationCard.swift; sourceTree = "<group>"; };
+		AA47DBAB2E96C76E009B1967 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		AA47DBAE2E96C776009B1967 /* InputAnsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputAnsView.swift; sourceTree = "<group>"; };
+		AA47DBAF2E96C776009B1967 /* InputChordSolveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputChordSolveView.swift; sourceTree = "<group>"; };
+		AA47DBB02E96C776009B1967 /* InputTriadAns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTriadAns.swift; sourceTree = "<group>"; };
+		AA47DBB12E96C776009B1967 /* NotePickerKeyboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotePickerKeyboard.swift; sourceTree = "<group>"; };
+		AA47DBB22E96C776009B1967 /* qualityButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = qualityButton.swift; sourceTree = "<group>"; };
+		AA47DBB32E96C776009B1967 /* scaleAnsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scaleAnsView.swift; sourceTree = "<group>"; };
+		AA47DBB42E96C776009B1967 /* scaleButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scaleButtons.swift; sourceTree = "<group>"; };
+		AA47DBB62E96C776009B1967 /* ChordSolverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordSolverView.swift; sourceTree = "<group>"; };
+		AA47DBB72E96C776009B1967 /* ChordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChordView.swift; sourceTree = "<group>"; };
+		AA47DBB82E96C776009B1967 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AA47DBB92E96C776009B1967 /* IntervalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalView.swift; sourceTree = "<group>"; };
+		AA47DBBA2E96C776009B1967 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		AA47DBBB2E96C776009B1967 /* ScalesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalesView.swift; sourceTree = "<group>"; };
+		AA47DBBC2E96C776009B1967 /* TriadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriadView.swift; sourceTree = "<group>"; };
 		D283F3BE262CCDF60069AF23 /* Chord Solver.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Chord Solver.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D283F3C1262CCDF60069AF23 /* Chord_SolverApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chord_SolverApp.swift; sourceTree = "<group>"; };
-		D283F3C3262CCDF60069AF23 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		D283F3C5262CCDF70069AF23 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D283F3C8262CCDF70069AF23 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D283F3CA262CCDF70069AF23 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -105,14 +114,6 @@
 		D283F3DA262CCDF70069AF23 /* Chord SolverUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Chord SolverUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D283F3DE262CCDF70069AF23 /* Chord_SolverUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chord_SolverUITests.swift; sourceTree = "<group>"; };
 		D283F3E0262CCDF70069AF23 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D283F3EF262CCE2F0069AF23 /* IntervalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntervalView.swift; sourceTree = "<group>"; };
-		D283F3F4262CCE4D0069AF23 /* ScalesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScalesView.swift; sourceTree = "<group>"; };
-		D283F3F9262CCE6B0069AF23 /* TriadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriadView.swift; sourceTree = "<group>"; };
-		D283F3FE262CCE910069AF23 /* InputAnsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputAnsView.swift; sourceTree = "<group>"; };
-		D283F42F262CCEC70069AF23 /* InputTriadAns.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTriadAns.swift; sourceTree = "<group>"; };
-		D283F436262CCED50069AF23 /* qualityButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = qualityButton.swift; sourceTree = "<group>"; };
-		D283F43D262CCEFA0069AF23 /* scaleButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scaleButtons.swift; sourceTree = "<group>"; };
-		D283F444262CCF110069AF23 /* scaleAnsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scaleAnsView.swift; sourceTree = "<group>"; };
 		D283F44B262CCF340069AF23 /* AnswerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnswerViewModel.swift; sourceTree = "<group>"; };
 		D283F452262CCF5F0069AF23 /* scalesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scalesViewModel.swift; sourceTree = "<group>"; };
 		D283F460262CCFC20069AF23 /* triadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = triadViewModel.swift; sourceTree = "<group>"; };
@@ -120,7 +121,6 @@
 		D283F475262CD0450069AF23 /* scalesBuildModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = scalesBuildModel.swift; sourceTree = "<group>"; };
 		D283F47C262CD05F0069AF23 /* triadBuildModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = triadBuildModel.swift; sourceTree = "<group>"; };
 		D283F483262CD06F0069AF23 /* triadInts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = triadInts.swift; sourceTree = "<group>"; };
-		D283F4AC262CD2EF0069AF23 /* InputChordSolveView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputChordSolveView.swift; sourceTree = "<group>"; };
 		D283F4B3262CD30D0069AF23 /* chordSolverVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = chordSolverVM.swift; sourceTree = "<group>"; };
 		D283F4BA262CD33C0069AF23 /* chordSolverModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = chordSolverModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -150,6 +150,72 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA47DB9F2E96C754009B1967 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				AA47DB9B2E96C754009B1967 /* Animations.swift */,
+				AA47DB9C2E96C754009B1967 /* Colors.swift */,
+				AA47DB9D2E96C754009B1967 /* Spacing.swift */,
+				AA47DB9E2E96C754009B1967 /* Typography.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		AA47DBA72E96C761009B1967 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				AA47DBA42E96C761009B1967 /* EnhancedInputField.swift */,
+				AA47DBA52E96C761009B1967 /* FeatureButton.swift */,
+				AA47DBA62E96C761009B1967 /* NavigationCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		AA47DBAC2E96C76E009B1967 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				AA47DBAB2E96C76E009B1967 /* HapticManager.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		AA47DBB52E96C776009B1967 /* Add-ons */ = {
+			isa = PBXGroup;
+			children = (
+				AA47DBAE2E96C776009B1967 /* InputAnsView.swift */,
+				AA47DBAF2E96C776009B1967 /* InputChordSolveView.swift */,
+				AA47DBB02E96C776009B1967 /* InputTriadAns.swift */,
+				AA47DBB12E96C776009B1967 /* NotePickerKeyboard.swift */,
+				AA47DBB22E96C776009B1967 /* qualityButton.swift */,
+				AA47DBB32E96C776009B1967 /* scaleAnsView.swift */,
+				AA47DBB42E96C776009B1967 /* scaleButtons.swift */,
+			);
+			path = "Add-ons";
+			sourceTree = "<group>";
+		};
+		AA47DBBD2E96C776009B1967 /* Main Screens */ = {
+			isa = PBXGroup;
+			children = (
+				AA47DBB62E96C776009B1967 /* ChordSolverView.swift */,
+				AA47DBB72E96C776009B1967 /* ChordView.swift */,
+				AA47DBB82E96C776009B1967 /* ContentView.swift */,
+				AA47DBB92E96C776009B1967 /* IntervalView.swift */,
+				AA47DBBA2E96C776009B1967 /* MainTabView.swift */,
+				AA47DBBB2E96C776009B1967 /* ScalesView.swift */,
+				AA47DBBC2E96C776009B1967 /* TriadView.swift */,
+			);
+			path = "Main Screens";
+			sourceTree = "<group>";
+		};
+		AA47DBBE2E96C776009B1967 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AA47DBB52E96C776009B1967 /* Add-ons */,
+				AA47DBBD2E96C776009B1967 /* Main Screens */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
 		D283F3B5262CCDF60069AF23 = {
 			isa = PBXGroup;
 			children = (
@@ -173,13 +239,16 @@
 		D283F3C0262CCDF60069AF23 /* Chord Solver */ = {
 			isa = PBXGroup;
 			children = (
-				D283F48D262CD16E0069AF23 /* Views */,
+				AA47DBBE2E96C776009B1967 /* Views */,
 				D283F496262CD1FE0069AF23 /* ViewModels */,
 				D283F497262CD21E0069AF23 /* Models */,
 				D283F3C1262CCDF60069AF23 /* Chord_SolverApp.swift */,
 				D283F3C5262CCDF70069AF23 /* Assets.xcassets */,
 				D283F3CA262CCDF70069AF23 /* Info.plist */,
 				D283F3C7262CCDF70069AF23 /* Preview Content */,
+				AA47DB9F2E96C754009B1967 /* DesignSystem */,
+				AA47DBA72E96C761009B1967 /* Components */,
+				AA47DBAC2E96C76E009B1967 /* Utils */,
 			);
 			path = "Chord Solver";
 			sourceTree = "<group>";
@@ -208,40 +277,6 @@
 				D283F3E0262CCDF70069AF23 /* Info.plist */,
 			);
 			path = "Chord SolverUITests";
-			sourceTree = "<group>";
-		};
-		D283F48D262CD16E0069AF23 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				D283F494262CD1C60069AF23 /* Main Screens */,
-				D283F495262CD1E70069AF23 /* Add-ons */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		D283F494262CD1C60069AF23 /* Main Screens */ = {
-			isa = PBXGroup;
-			children = (
-				D283F3C3262CCDF60069AF23 /* ContentView.swift */,
-				D283F3EF262CCE2F0069AF23 /* IntervalView.swift */,
-				D283F3F4262CCE4D0069AF23 /* ScalesView.swift */,
-				D283F3F9262CCE6B0069AF23 /* TriadView.swift */,
-				D24FCCE3269B6DAF00C115BE /* ChordView.swift */,
-			);
-			path = "Main Screens";
-			sourceTree = "<group>";
-		};
-		D283F495262CD1E70069AF23 /* Add-ons */ = {
-			isa = PBXGroup;
-			children = (
-				D283F3FE262CCE910069AF23 /* InputAnsView.swift */,
-				D283F42F262CCEC70069AF23 /* InputTriadAns.swift */,
-				D283F436262CCED50069AF23 /* qualityButton.swift */,
-				D283F43D262CCEFA0069AF23 /* scaleButtons.swift */,
-				D283F444262CCF110069AF23 /* scaleAnsView.swift */,
-				D283F4AC262CD2EF0069AF23 /* InputChordSolveView.swift */,
-			);
-			path = "Add-ons";
 			sourceTree = "<group>";
 		};
 		D283F496262CD1FE0069AF23 /* ViewModels */ = {
@@ -396,27 +431,38 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA47DBA02E96C754009B1967 /* Typography.swift in Sources */,
+				AA47DBA12E96C754009B1967 /* Colors.swift in Sources */,
+				AA47DBA22E96C754009B1967 /* Spacing.swift in Sources */,
+				AA47DBA32E96C754009B1967 /* Animations.swift in Sources */,
 				D283F4B4262CD30D0069AF23 /* chordSolverVM.swift in Sources */,
 				D283F44C262CCF340069AF23 /* AnswerViewModel.swift in Sources */,
-				D283F3FF262CCE910069AF23 /* InputAnsView.swift in Sources */,
 				D283F484262CD06F0069AF23 /* triadInts.swift in Sources */,
-				D24FCCE4269B6DAF00C115BE /* ChordView.swift in Sources */,
-				D283F4AD262CD2EF0069AF23 /* InputChordSolveView.swift in Sources */,
-				D283F3C4262CCDF60069AF23 /* ContentView.swift in Sources */,
+				AA47DBBF2E96C776009B1967 /* NotePickerKeyboard.swift in Sources */,
+				AA47DBC02E96C776009B1967 /* InputTriadAns.swift in Sources */,
+				AA47DBC12E96C776009B1967 /* scaleButtons.swift in Sources */,
+				AA47DBC22E96C776009B1967 /* IntervalView.swift in Sources */,
+				AA47DBC32E96C776009B1967 /* InputChordSolveView.swift in Sources */,
+				AA47DBC42E96C776009B1967 /* ScalesView.swift in Sources */,
+				AA47DBC52E96C776009B1967 /* scaleAnsView.swift in Sources */,
+				AA47DBC62E96C776009B1967 /* ContentView.swift in Sources */,
+				AA47DBC72E96C776009B1967 /* MainTabView.swift in Sources */,
+				AA47DBC82E96C776009B1967 /* TriadView.swift in Sources */,
+				AA47DBC92E96C776009B1967 /* InputAnsView.swift in Sources */,
+				AA47DBCA2E96C776009B1967 /* qualityButton.swift in Sources */,
+				AA47DBCB2E96C776009B1967 /* ChordSolverView.swift in Sources */,
+				AA47DBCC2E96C776009B1967 /* ChordView.swift in Sources */,
 				D283F4BB262CD33C0069AF23 /* chordSolverModel.swift in Sources */,
-				D283F3F5262CCE4D0069AF23 /* ScalesView.swift in Sources */,
-				D283F437262CCED50069AF23 /* qualityButton.swift in Sources */,
+				AA47DBA82E96C761009B1967 /* FeatureButton.swift in Sources */,
+				AA47DBA92E96C761009B1967 /* EnhancedInputField.swift in Sources */,
+				AA47DBAA2E96C761009B1967 /* NavigationCard.swift in Sources */,
 				D283F46F262CD0260069AF23 /* intervalDistances.swift in Sources */,
 				D283F476262CD0450069AF23 /* scalesBuildModel.swift in Sources */,
-				D283F3F0262CCE2F0069AF23 /* IntervalView.swift in Sources */,
 				D283F3C2262CCDF60069AF23 /* Chord_SolverApp.swift in Sources */,
 				D283F47D262CD05F0069AF23 /* triadBuildModel.swift in Sources */,
 				D283F453262CCF5F0069AF23 /* scalesViewModel.swift in Sources */,
-				D283F445262CCF110069AF23 /* scaleAnsView.swift in Sources */,
-				D283F43E262CCEFA0069AF23 /* scaleButtons.swift in Sources */,
-				D283F430262CCEC70069AF23 /* InputTriadAns.swift in Sources */,
+				AA47DBAD2E96C76E009B1967 /* HapticManager.swift in Sources */,
 				D283F461262CCFC20069AF23 /* triadViewModel.swift in Sources */,
-				D283F3FA262CCE6B0069AF23 /* TriadView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -426,23 +472,12 @@
 			files = (
 				D283F4B5262CD30D0069AF23 /* chordSolverVM.swift in Sources */,
 				D283F44D262CCF340069AF23 /* AnswerViewModel.swift in Sources */,
-				D283F415262CCE9D0069AF23 /* InputAnsView.swift in Sources */,
 				D283F485262CD06F0069AF23 /* triadInts.swift in Sources */,
-				D24FCCE9269B6DB500C115BE /* ChordView.swift in Sources */,
-				D283F4AE262CD2EF0069AF23 /* InputChordSolveView.swift in Sources */,
-				D283F419262CCE9D0069AF23 /* TriadView.swift in Sources */,
 				D283F4BC262CD33C0069AF23 /* chordSolverModel.swift in Sources */,
-				D283F418262CCE9D0069AF23 /* ScalesView.swift in Sources */,
-				D283F438262CCED50069AF23 /* qualityButton.swift in Sources */,
 				D283F470262CD0260069AF23 /* intervalDistances.swift in Sources */,
 				D283F477262CD0450069AF23 /* scalesBuildModel.swift in Sources */,
-				D283F416262CCE9D0069AF23 /* IntervalView.swift in Sources */,
-				D283F417262CCE9D0069AF23 /* ContentView.swift in Sources */,
 				D283F47E262CD05F0069AF23 /* triadBuildModel.swift in Sources */,
 				D283F454262CCF5F0069AF23 /* scalesViewModel.swift in Sources */,
-				D283F446262CCF110069AF23 /* scaleAnsView.swift in Sources */,
-				D283F43F262CCEFA0069AF23 /* scaleButtons.swift in Sources */,
-				D283F431262CCEC70069AF23 /* InputTriadAns.swift in Sources */,
 				D283F462262CCFC20069AF23 /* triadViewModel.swift in Sources */,
 				D283F3D4262CCDF70069AF23 /* Chord_SolverTests.swift in Sources */,
 			);
@@ -454,23 +489,12 @@
 			files = (
 				D283F4B6262CD30D0069AF23 /* chordSolverVM.swift in Sources */,
 				D283F44E262CCF340069AF23 /* AnswerViewModel.swift in Sources */,
-				D283F427262CCE9F0069AF23 /* InputAnsView.swift in Sources */,
 				D283F486262CD06F0069AF23 /* triadInts.swift in Sources */,
-				D24FCCE8269B6DB500C115BE /* ChordView.swift in Sources */,
-				D283F4AF262CD2EF0069AF23 /* InputChordSolveView.swift in Sources */,
-				D283F42B262CCE9F0069AF23 /* TriadView.swift in Sources */,
 				D283F4BD262CD33C0069AF23 /* chordSolverModel.swift in Sources */,
-				D283F42A262CCE9F0069AF23 /* ScalesView.swift in Sources */,
-				D283F439262CCED50069AF23 /* qualityButton.swift in Sources */,
 				D283F471262CD0260069AF23 /* intervalDistances.swift in Sources */,
 				D283F478262CD0450069AF23 /* scalesBuildModel.swift in Sources */,
-				D283F428262CCE9F0069AF23 /* IntervalView.swift in Sources */,
-				D283F429262CCE9F0069AF23 /* ContentView.swift in Sources */,
 				D283F47F262CD05F0069AF23 /* triadBuildModel.swift in Sources */,
 				D283F455262CCF5F0069AF23 /* scalesViewModel.swift in Sources */,
-				D283F447262CCF110069AF23 /* scaleAnsView.swift in Sources */,
-				D283F440262CCEFA0069AF23 /* scaleButtons.swift in Sources */,
-				D283F432262CCEC70069AF23 /* InputTriadAns.swift in Sources */,
 				D283F463262CCFC20069AF23 /* triadViewModel.swift in Sources */,
 				D283F3DF262CCDF70069AF23 /* Chord_SolverUITests.swift in Sources */,
 			);

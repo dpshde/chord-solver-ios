@@ -1,13 +1,15 @@
 //
-//  ContentView.swift
-//  Shared
+//  ChordView.swift
+//  Chord Solver
 //
 //  Created by Dylan Shade on 4/7/21.
+//  NOTE: This file is deprecated. ChordSolverView is now in ChordSolverView.swift
 //
 
 import SwiftUI
 
-struct ChordSolverView: View {
+// Placeholder to prevent build errors - actual implementation is in ChordSolverView.swift
+struct ChordView_Deprecated: View {
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -81,10 +83,10 @@ struct ChordSolverView: View {
     }
 }
 
-struct ChordSolverView_Previews: PreviewProvider {
+struct ChordView_Deprecated_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            ChordSolverView()
+            ChordView_Deprecated()
                 .preferredColorScheme(.light)
         }
     }
