@@ -17,7 +17,7 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack {
             // Content
             ZStack {
                 ChordIdentifierContainerView()
@@ -29,48 +29,59 @@ struct MainTabView: View {
                 IntervalsContainerView()
                     .opacity(selectedTab == 2 ? 1 : 0)
             }
-
-            // Custom Tab Bar
-            HStack(spacing: 0) {
-                CustomTabButton(
-                    icon: "music.note.list",
-                    label: "Chords",
-                    isSelected: selectedTab == 0,
-                    textColor: .brandCoral,
-                    edgePosition: .left
-                ) {
-                    selectedTab = 0
-                    HapticManager.shared.selectionChanged()
-                }
-
-                CustomTabButton(
-                    icon: "music.quarternote.3",
-                    label: "Scales",
-                    isSelected: selectedTab == 1,
-                    textColor: .brandPurple,
-                    edgePosition: .none
-                ) {
-                    selectedTab = 1
-                    HapticManager.shared.selectionChanged()
-                }
-
-                CustomTabButton(
-                    icon: "arrow.left.and.right",
-                    label: "Intervals",
-                    isSelected: selectedTab == 2,
-                    textColor: .brandAqua,
-                    edgePosition: .right
-                ) {
-                    selectedTab = 2
-                    HapticManager.shared.selectionChanged()
-                }
-            }
-            .padding(.top, 8)
-            .background(
-                Color.darkBeige
-            )
-            .ignoresSafeArea(edges: .bottom)
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            TabBar(selectedTab: $selectedTab)
+        }
+    }
+}
+
+// MARK: - Tab Bar
+
+struct TabBar: View {
+    @Binding var selectedTab: Int
+
+    var body: some View {
+        HStack(spacing: 0) {
+            CustomTabButton(
+                icon: "music.note.list",
+                label: "Chords",
+                isSelected: selectedTab == 0,
+                textColor: .brandCoral,
+                edgePosition: .left
+            ) {
+                selectedTab = 0
+                HapticManager.shared.selectionChanged()
+            }
+
+            CustomTabButton(
+                icon: "music.quarternote.3",
+                label: "Scales",
+                isSelected: selectedTab == 1,
+                textColor: .brandPurple,
+                edgePosition: .none
+            ) {
+                selectedTab = 1
+                HapticManager.shared.selectionChanged()
+            }
+
+            CustomTabButton(
+                icon: "arrow.left.and.right",
+                label: "Intervals",
+                isSelected: selectedTab == 2,
+                textColor: .brandAqua,
+                edgePosition: .right
+            ) {
+                selectedTab = 2
+                HapticManager.shared.selectionChanged()
+            }
+        }
+        .frame(height: 72)
+        .padding(.top, 8)
+        .background(
+            Color.darkBeige
+                .ignoresSafeArea(edges: .bottom)
+        )
     }
 }
 
@@ -117,7 +128,7 @@ struct CustomTabButton: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .frame(height: 72)
+        .frame(maxHeight: .infinity)
     }
 }
 
