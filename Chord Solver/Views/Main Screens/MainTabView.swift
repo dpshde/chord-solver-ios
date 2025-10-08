@@ -36,7 +36,8 @@ struct MainTabView: View {
                     icon: "music.note.list",
                     label: "Chords",
                     isSelected: selectedTab == 0,
-                    accentColor: .accentCoral
+                    accentColor: .lightTintCoral,
+                    isEdgeTab: true
                 ) {
                     selectedTab = 0
                     HapticManager.shared.selectionChanged()
@@ -46,7 +47,8 @@ struct MainTabView: View {
                     icon: "music.quarternote.3",
                     label: "Scales",
                     isSelected: selectedTab == 1,
-                    accentColor: .accentPurple
+                    accentColor: .lightTintPurple,
+                    isEdgeTab: false
                 ) {
                     selectedTab = 1
                     HapticManager.shared.selectionChanged()
@@ -56,7 +58,8 @@ struct MainTabView: View {
                     icon: "arrow.left.and.right",
                     label: "Intervals",
                     isSelected: selectedTab == 2,
-                    accentColor: .accentAqua
+                    accentColor: .lightTintAqua,
+                    isEdgeTab: true
                 ) {
                     selectedTab = 2
                     HapticManager.shared.selectionChanged()
@@ -78,6 +81,7 @@ struct CustomTabButton: View {
     let label: String
     let isSelected: Bool
     let accentColor: Color
+    var isEdgeTab: Bool = false
     let action: () -> Void
 
     var body: some View {
@@ -85,11 +89,11 @@ struct CustomTabButton: View {
             VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 24))
-                    .foregroundColor(isSelected ? .white : .textOnLight)
+                    .foregroundColor(isSelected ? .textOnLight : .textOnLight)
 
                 Text(label)
                     .font(.caption2)
-                    .foregroundColor(isSelected ? .white : .textOnLight)
+                    .foregroundColor(isSelected ? .textOnLight : .textOnLight)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 8)
@@ -98,7 +102,7 @@ struct CustomTabButton: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(isSelected ? accentColor : Color.clear)
             )
-            .padding(.horizontal, 4)
+            .padding(.horizontal, isEdgeTab ? 0 : 4)
         }
         .frame(height: 72)
         .buttonStyle(PlainButtonStyle())
