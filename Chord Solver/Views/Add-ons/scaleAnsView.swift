@@ -235,11 +235,10 @@ struct scalesAnsView: View {
                 .padding(.horizontal, Spacing.lg)
                 .padding(.vertical, Spacing.xl)
                 .background(
-                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+                    RoundedRectangle(cornerRadius: 0)
                         .fill(Color.brandPurple)
                         .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                 )
-                .padding(.horizontal, Spacing.screenPadding)
                 .padding(.bottom, Spacing.xxl)
                 .transition(.scaleAndFade)
 
