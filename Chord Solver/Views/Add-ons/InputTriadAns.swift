@@ -299,12 +299,12 @@ struct ChordQualityButton: View {
         }) {
             Text(label)
                 .font(.buttonLabel)
-                .foregroundColor(isActive ? .white : .textOnLight)
+                .foregroundColor(isActive ? .textOnLight : .textOnLight)
                 .padding(.horizontal, Spacing.contentPadding)
                 .padding(.vertical, Spacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                        .fill(isActive ? Color.accentCoral : Color.white.opacity(0.5))
+                        .fill(isActive ? Color.lightTintCoral : Color.white.opacity(0.5))
                         .shadow(color: Color.white.opacity(isActive ? 0.5 : 0.3), radius: isActive ? 6 : 4, x: 0, y: isActive ? 3 : 2)
                 )
                 .scaleEffect(isActive ? 1.05 : 1.0)
@@ -374,7 +374,7 @@ struct TriadNotePickerKeyboard: View {
 
                 Spacer()
 
-                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.brandCoral.opacity(0.3)) {
+                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.neutralGray) {
                     backspace()
                 }
             }
@@ -451,12 +451,12 @@ struct TriadNoteButton: View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(isSelected ? .white : .textOnLight)
+                .foregroundColor(isSelected ? .textOnLight : .textOnLight)
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(isSelected ? Color.accentCoral : backgroundColor)
+                        .fill(isSelected ? Color.lightTintCoral : backgroundColor)
                         .shadow(color: Color.black.opacity(isPressed ? 0.3 : 0.15), radius: isPressed ? 2 : 4, x: 0, y: isPressed ? 1 : 2)
                 )
                 .scaleEffect(isPressed ? 0.95 : 1.0)

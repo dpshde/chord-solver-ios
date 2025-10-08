@@ -83,6 +83,20 @@ extension Color {
     /// Accent color for interval view buttons (darker pastel aqua for better contrast with white text)
     static let accentAqua = Color(red: 0.60, green: 0.80, blue: 0.85)
 
+    // MARK: - Very Light Tints for Input Selections
+
+    /// Very light coral tint for subtle selections (input buttons)
+    static let lightTintCoral = Color(red: 1.0, green: 0.95, blue: 0.95)
+
+    /// Very light purple tint for subtle selections (input buttons)
+    static let lightTintPurple = Color(red: 0.96, green: 0.96, blue: 1.0)
+
+    /// Very light aqua tint for subtle selections (input buttons)
+    static let lightTintAqua = Color(red: 0.95, green: 0.98, blue: 0.99)
+
+    /// Neutral gray for non-selection buttons (like backspace)
+    static let neutralGray = Color(red: 0.85, green: 0.85, blue: 0.85)
+
     // MARK: - Text Colors
 
     /// Primary text color (on colored backgrounds) - High contrast white

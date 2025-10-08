@@ -168,7 +168,7 @@ struct IntervalNotePickerKeyboard: View {
                 IntervalNoteButton(
                     label: "⌫",
                     isPressed: pressedButton == "⌫",
-                    backgroundColor: Color.red.opacity(0.3)
+                    backgroundColor: Color.neutralGray
                 ) {
                     backspace()
                 }
@@ -253,12 +253,12 @@ struct IntervalNoteButton: View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(isSelected ? .white : .textOnLight)
+                .foregroundColor(isSelected ? .textOnLight : .textOnLight)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? Color.accentAqua : backgroundColor)
+                        .fill(isSelected ? Color.lightTintAqua : backgroundColor)
                         .shadow(
                             color: Color.black.opacity(isPressed ? 0.3 : 0.15),
                             radius: isPressed ? 2 : 4,
