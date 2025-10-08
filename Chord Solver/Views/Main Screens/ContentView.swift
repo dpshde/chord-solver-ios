@@ -71,9 +71,9 @@ struct ContentView: View {
 //                        .padding(.bottom, Spacing.xl)
 //                        .opacity(titleLettersAnimated ? 1 : 0)
 
-                    // Single Launch Button to enter the app
-                    NavigationLink(destination: MainTabView()) {
-                        VStack(spacing: Spacing.cardSpacing) {
+                    // Navigation cards to enter the app
+                    VStack(spacing: Spacing.cardSpacing) {
+                        NavigationLink(destination: MainTabView(initialTab: 0)) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
                                     .foregroundColor(Color.brandCoral)
@@ -84,7 +84,14 @@ struct ContentView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, Spacing.contentPadding)
                             }
+                        }
+                        .simultaneousGesture(
+                            TapGesture().onEnded { _ in
+                                HapticManager.shared.navigate()
+                            }
+                        )
 
+                        NavigationLink(destination: MainTabView(initialTab: 1)) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
                                     .foregroundColor(Color.brandPurple)
@@ -95,7 +102,14 @@ struct ContentView: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, Spacing.contentPadding)
                             }
+                        }
+                        .simultaneousGesture(
+                            TapGesture().onEnded { _ in
+                                HapticManager.shared.navigate()
+                            }
+                        )
 
+                        NavigationLink(destination: MainTabView(initialTab: 2)) {
                             ZStack {
                                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
                                     .foregroundColor(Color.brandAqua)
@@ -107,17 +121,17 @@ struct ContentView: View {
                                     .padding(.horizontal, Spacing.contentPadding)
                             }
                         }
-                        .opacity(cardsAnimated ? 1 : 0)
-                        .offset(y: cardsAnimated ? 0 : 30)
-                        .animation(
-                            AppAnimation.smoothSpring.delay(0.3),
-                            value: cardsAnimated
+                        .simultaneousGesture(
+                            TapGesture().onEnded { _ in
+                                HapticManager.shared.navigate()
+                            }
                         )
                     }
-                    .simultaneousGesture(
-                        TapGesture().onEnded { _ in
-                            HapticManager.shared.navigate()
-                        }
+                    .opacity(cardsAnimated ? 1 : 0)
+                    .offset(y: cardsAnimated ? 0 : 30)
+                    .animation(
+                        AppAnimation.smoothSpring.delay(0.3),
+                        value: cardsAnimated
                     )
                     .padding(.horizontal, Spacing.screenPadding)
                     .padding(.bottom, Spacing.screenPadding)
