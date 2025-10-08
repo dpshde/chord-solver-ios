@@ -93,15 +93,24 @@ struct CustomTabButton: View {
             VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 24))
-                    .foregroundColor(isSelected ? textColor : .textOnLight)
+                    .foregroundColor(isSelected ? .white : .textOnLight)
 
                 Text(label)
                     .font(.caption2)
-                    .foregroundColor(isSelected ? textColor : .textOnLight)
+                    .foregroundColor(isSelected ? .white : .textOnLight)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 8)
             .padding(.vertical, 12)
+            .background(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: edgePosition == .left ? 0 : 12,
+                    bottomLeadingRadius: edgePosition == .left ? 0 : 12,
+                    bottomTrailingRadius: edgePosition == .right ? 0 : 12,
+                    topTrailingRadius: edgePosition == .right ? 0 : 12
+                )
+                .fill(isSelected ? textColor : Color.clear)
+            )
             .padding(.horizontal, edgePosition == .none ? 4 : 0)
         }
         .frame(height: 72)
