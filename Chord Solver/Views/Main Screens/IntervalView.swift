@@ -158,7 +158,7 @@ struct IntervalView: View {
                         .padding(.vertical, Spacing.xl)
                         .background(
                             RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                .fill(Color.accentAqua)
+                                .fill(Color.brandAqua)
                                 .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
                         )
                 }

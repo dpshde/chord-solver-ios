@@ -36,7 +36,7 @@ struct MainTabView: View {
                     icon: "music.note.list",
                     label: "Chords",
                     isSelected: selectedTab == 0,
-                    accentColor: .brandCoral
+                    accentColor: .accentCoral
                 ) {
                     selectedTab = 0
                     HapticManager.shared.selectionChanged()
@@ -46,7 +46,7 @@ struct MainTabView: View {
                     icon: "music.quarternote.3",
                     label: "Scales",
                     isSelected: selectedTab == 1,
-                    accentColor: .brandPurple
+                    accentColor: .accentPurple
                 ) {
                     selectedTab = 1
                     HapticManager.shared.selectionChanged()
@@ -56,7 +56,7 @@ struct MainTabView: View {
                     icon: "arrow.left.and.right",
                     label: "Intervals",
                     isSelected: selectedTab == 2,
-                    accentColor: .brandAqua
+                    accentColor: .accentAqua
                 ) {
                     selectedTab = 2
                     HapticManager.shared.selectionChanged()

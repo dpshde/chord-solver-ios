@@ -327,7 +327,7 @@ struct ScaleNoteCard: View {
             .padding(.horizontal, Spacing.xs)
             .background(
                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                    .fill(Color.accentPurple)
+                    .fill(Color.brandPurple)
                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             )
             .scaleEffect(appeared ? 1.0 : 0.8)

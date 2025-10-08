@@ -331,7 +331,7 @@ struct NoteCard: View {
             .padding(.horizontal, Spacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                    .fill(Color.accentCoral)
+                    .fill(Color.brandCoral)
                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             )
             .scaleEffect(appeared ? 1.0 : 0.8)
