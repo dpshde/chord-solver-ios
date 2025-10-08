@@ -1,104 +1,21 @@
 //
-//  Scales.swift
+//  ScalesView.swift
 //  ChordSolver (iOS)
 //
 //  Created by Dylan Shade on 4/17/21.
+//  Redesigned on 10/8/25 - Modern UI refresh
 //
 
 import SwiftUI
 
 struct ScalesView: View {
-    
+
     @StateObject var viewModel = scalesViewModel()
     @Environment(\.colorScheme) var colorScheme
-    
+
     var body: some View {
-        NavigationView {
-            ZStack{
-                Color(#colorLiteral(red: 0.7215686275, green: 0.7098039216, blue: 1, alpha: 1))
-                    .ignoresSafeArea()
-
-                VStack(alignment: .center) {
-                    scalesAnsView()
-                        .frame(maxWidth: 350, maxHeight: 100, alignment: .center)
-                    
-                    Spacer()
-                    
-                    VStack {
-                        ZStack(alignment: .topLeading) {
-                            RoundedRectangle(cornerRadius: 15)
-                                .frame(maxWidth: .infinity, maxHeight: 75)
-                                .foregroundColor(Color(#colorLiteral(red: 0.7215686275, green: 0.7098039216, blue: 1, alpha: 1)))
-
-                                Text("Scales")
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .font(.title)
-                                    .frame(maxWidth: 428, maxHeight: 75, alignment: .trailing)
-                                    .padding(.horizontal, 10)
-
-                        }.padding(-10)
-                        
-                        ZStack(alignment: .topLeading) {
-                            RoundedRectangle(cornerRadius: 15)
-                                .frame(maxWidth: .infinity, maxHeight: 75)
-                                .foregroundColor(Color(#colorLiteral(red: 1, green: 0.4431372549, blue: 0.4431372549, alpha: 1)))
-                            NavigationLink(destination: TriadView(), label: {
-
-                                Text("Chords")
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .font(.title)
-                                    .frame(maxWidth: .infinity, maxHeight: 75, alignment: .leading)
-                                    .padding(.horizontal, 15)
-                            })
-                        }.padding(-10)
-                        /*
-                        ZStack(alignment: .topLeading) {
-                            RoundedRectangle(cornerRadius: 15)
-                                .edgesIgnoringSafeArea(.horizontal)
-                                .frame(maxWidth: .infinity, maxHeight: 75)
-                                .foregroundColor(Color(#colorLiteral(red: 0.9607843137, green: 0.7529411765, blue: 0.7529411765, alpha: 1)))
-                            NavigationLink(destination: ChordSolverView(), label: {
-                                Text("Chord Solver")
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .font(.title)
-                                    .frame(maxWidth: 428, maxHeight: 75, alignment: .leading)
-                                    .padding(.horizontal, 15)
-                            })
-                                
-                        }.padding(-10)
-
-                         */
-                        ZStack(alignment: .topLeading) {
-                            Rectangle()
-                                .edgesIgnoringSafeArea(.all)
-                                .frame(maxWidth: .infinity, maxHeight: 75)
-                                .foregroundColor(Color(#colorLiteral(red: 0.6235294118, green: 0.8470588235, blue: 0.8745098039, alpha: 1)))
-                            NavigationLink(destination: IntervalView(), label: {
-                                Text("Intervals")
-                                    .bold()
-                                    .foregroundColor(.white)
-                                    .font(.title)
-                                    .frame(maxWidth: 428, maxHeight: 75, alignment: .leading)
-                                    .padding(.horizontal, 15)
-                            })
-                                
-                        }.padding(-10)
-
-                    }
-                    .frame(height: 175, alignment: .center)
-                    .padding(.top, 100)
-                    
-                }.padding()
-                .edgesIgnoringSafeArea(.bottom)
-                .navigationBarTitle("Scale Solver")
-            }
-    
-        }.environmentObject(viewModel)
-        .navigationBarHidden(true)
-        .navigationViewStyle(StackNavigationViewStyle())
+        scalesAnsView()
+            .environmentObject(viewModel)
     }
 }
 

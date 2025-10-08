@@ -3,7 +3,7 @@
 //  Chord Solver
 //
 //  Created by Dylan Shade on 4/7/21.
-//  Redesigned on 10/8/25 - Custom UI
+//  Redesigned on 10/8/25 - Modern UI refresh
 //
 
 import SwiftUI
@@ -18,22 +18,21 @@ struct IntervalView: View {
     @State private var intervalResult: String = ""
 
     var body: some View {
-        ScrollView {
+        VStack(spacing: 0) {
+
+            // Input section
             VStack(spacing: Spacing.xl) {
-
-                Spacer().frame(height: Spacing.xl)
-
-                // Instructions
-                Text("Enter two notes to find the interval")
-                    .font(.body)
-                    .foregroundColor(.textSecondary)
-                    .padding(.horizontal, Spacing.screenPadding)
-
                 // Bottom Note Input
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Bottom Note")
-                        .font(.caption)
-                        .foregroundColor(.textSecondary)
+                VStack(spacing: Spacing.sm) {
+                    HStack {
+//                        Image(systemName: "arrow.down.circle.fill")
+//                            .font(.title3)
+//                            .foregroundColor(.textOnLight)
+                        Text("Bottom Note")
+                            .font(.headline)
+                            .foregroundColor(.textOnLight)
+                        Spacer()
+                    }
 
                     Button(action: {
                         withAnimation(AppAnimation.quickSpring) {
@@ -44,37 +43,61 @@ struct IntervalView: View {
                     }) {
                         HStack {
                             Text(bottomNote.isEmpty ? "Tap to enter" : bottomNote)
-                                .foregroundColor(bottomNote.isEmpty ? .textTertiary : .textPrimary)
+                                .foregroundColor(bottomNote.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
                                 .font(.noteName)
 
                             Spacer()
 
                             Image(systemName: showBottomKeyboard ? "keyboard.chevron.compact.down" : "keyboard")
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.textOnLight)
                         }
                         .padding(Spacing.contentPadding)
                         .background(
                             RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                .fill(Color.white.opacity(0.25))
-                                .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
+                                .fill(Color.white.opacity(0.5))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
+                                        .stroke(Color.black.opacity(0.4), lineWidth: 2)
+                                )
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
+
+                    // Custom keyboard for bottom note
+                    if showBottomKeyboard {
+                        IntervalNoteKeyboard(noteText: $bottomNote)
+                            .transition(.slideFromBottom)
+                    }
+                }
+
+                // Visual separator
+                HStack {
+                    Rectangle()
+                        .fill(Color.black.opacity(0.2))
+                        .frame(height: 2)
+
+                    Image(systemName: "arrow.down")
+                        .font(.title2)
+                        .foregroundColor(.textOnLight)
+                        .padding(.horizontal, Spacing.sm)
+
+                    Rectangle()
+                        .fill(Color.black.opacity(0.2))
+                        .frame(height: 2)
                 }
                 .padding(.horizontal, Spacing.screenPadding)
 
-                // Custom keyboard for bottom note
-                if showBottomKeyboard {
-                    IntervalNoteKeyboard(noteText: $bottomNote)
-                        .transition(.slideFromBottom)
-                        .padding(.horizontal, Spacing.screenPadding)
-                }
-
                 // Top Note Input
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Top Note")
-                        .font(.caption)
-                        .foregroundColor(.textSecondary)
+                VStack(spacing: Spacing.sm) {
+                    HStack {
+//                        Image(systemName: "arrow.up.circle.fill")
+//                            .font(.title3)
+//                            .foregroundColor(.textOnLight)
+                        Text("Top Note")
+                            .font(.headline)
+                            .foregroundColor(.textOnLight)
+                        Spacer()
+                    }
 
                     Button(action: {
                         withAnimation(AppAnimation.quickSpring) {
@@ -85,76 +108,95 @@ struct IntervalView: View {
                     }) {
                         HStack {
                             Text(topNote.isEmpty ? "Tap to enter" : topNote)
-                                .foregroundColor(topNote.isEmpty ? .textTertiary : .textPrimary)
+                                .foregroundColor(topNote.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
                                 .font(.noteName)
 
                             Spacer()
 
                             Image(systemName: showTopKeyboard ? "keyboard.chevron.compact.down" : "keyboard")
-                                .foregroundColor(.textSecondary)
+                                .foregroundColor(.textOnLight)
                         }
                         .padding(Spacing.contentPadding)
                         .background(
                             RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                .fill(Color.white.opacity(0.25))
-                                .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
+                                .fill(Color.white.opacity(0.5))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
+                                        .stroke(Color.black.opacity(0.4), lineWidth: 2)
+                                )
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
+
+                    // Custom keyboard for top note
+                    if showTopKeyboard {
+                        IntervalNoteKeyboard(noteText: $topNote)
+                            .transition(.slideFromBottom)
+                    }
+                }
+            }
+            .padding(.horizontal, Spacing.screenPadding)
+            .padding(.top, Spacing.md)
+
+            // Result at bottom (like chord/scale screens)
+            if !intervalResult.isEmpty {
+                Spacer()
+
+                VStack(spacing: Spacing.lg) {
+                    Text(getIntervalLabel())
+                        .font(.bodyRegular)
+                        .foregroundColor(.textOnLight)
+
+                    Text(intervalResult)
+                        .font(.system(size: 40, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.5)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, Spacing.lg)
+                        .padding(.vertical, Spacing.xl)
+                        .background(
+                            RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+                                .fill(Color.accentAqua)
+                                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                        )
                 }
                 .padding(.horizontal, Spacing.screenPadding)
-
-                // Custom keyboard for top note
-                if showTopKeyboard {
-                    IntervalNoteKeyboard(noteText: $topNote)
-                        .transition(.slideFromBottom)
-                        .padding(.horizontal, Spacing.screenPadding)
-                }
-
-                // Calculate Button
-                if !bottomNote.isEmpty && !topNote.isEmpty {
-                    Button(action: {
-                        calculateInterval()
-                        HapticManager.shared.success()
-                    }) {
-                        Text("Calculate Interval")
-                            .font(.buttonLabel)
-                            .foregroundColor(.textPrimary)
-                            .frame(maxWidth: .infinity)
-                            .padding(Spacing.contentPadding)
-                            .background(
-                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                    .fill(Color.white.opacity(0.3))
-                            )
-                    }
-                    .padding(.horizontal, Spacing.screenPadding)
-                    .transition(.scaleAndFade)
-                }
-
-                // Result Display
-                if !intervalResult.isEmpty {
-                    VStack(spacing: Spacing.md) {
-                        Text("Interval")
-                            .font(.caption)
-                            .foregroundColor(.textSecondary)
-
-                        Text(intervalResult)
-                            .font(.displayMedium)
-                            .foregroundColor(.textPrimary)
-                            .padding(Spacing.xl)
-                            .background(
-                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                    .fill(Color.white.opacity(0.2))
-                                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
-                            )
-                    }
-                    .padding(.horizontal, Spacing.screenPadding)
-                    .padding(.top, Spacing.xl)
-                    .transition(.scaleAndFade)
-                }
+                .padding(.bottom, Spacing.xxl)
+                .transition(.scaleAndFade)
 
                 Spacer()
+            } else {
+                Spacer()
             }
+        }
+        .onChange(of: bottomNote) { _ in
+            calculateIntervalIfReady()
+        }
+        .onChange(of: topNote) { _ in
+            calculateIntervalIfReady()
+        }
+    }
+
+    private func calculateIntervalIfReady() {
+        // Auto-calculate when both notes are entered
+        if !bottomNote.isEmpty && !topNote.isEmpty {
+            // Small delay to allow for smooth typing
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                if !bottomNote.isEmpty && !topNote.isEmpty {
+                    calculateInterval()
+                    // Close keyboards when result is shown
+                    withAnimation(AppAnimation.quickSpring) {
+                        showBottomKeyboard = false
+                        showTopKeyboard = false
+                    }
+                    HapticManager.shared.success()
+                }
+            }
+        } else {
+            // Clear result if either note is removed
+            intervalResult = ""
         }
     }
 
@@ -167,6 +209,13 @@ struct IntervalView: View {
             intervalResult = result.isEmpty ? "Invalid interval" : result
         }
     }
+
+    private func getIntervalLabel() -> String {
+        if bottomNote.isEmpty || topNote.isEmpty {
+            return "Interval"
+        }
+        return "\(bottomNote) → \(topNote)"
+    }
 }
 
 // MARK: - Custom Interval Note Keyboard
@@ -178,38 +227,33 @@ struct IntervalNoteKeyboard: View {
     private let naturalNotes = ["C", "D", "E", "F", "G", "A", "B"]
 
     var body: some View {
-        VStack(spacing: Spacing.sm) {
+        VStack(spacing: 8) {
             // Natural notes
-            HStack(spacing: Spacing.xs) {
+            HStack(spacing: 6) {
                 ForEach(naturalNotes, id: \.self) { note in
-                    IntervalNoteButton(label: note, isPressed: pressedButton == note) {
+                    IntervalNoteButton(label: note, isPressed: pressedButton == note, isSelected: noteText.starts(with: note)) {
                         appendNote(note)
                     }
                 }
             }
 
             // Accidentals and backspace
-            HStack(spacing: Spacing.xs) {
-                IntervalNoteButton(label: "♯", isPressed: pressedButton == "♯", backgroundColor: Color.white.opacity(0.15)) {
+            HStack(spacing: 6) {
+                IntervalNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: noteText.contains("#"), backgroundColor: Color.white.opacity(0.3)) {
                     appendAccidental("#")
                 }
 
-                IntervalNoteButton(label: "♭", isPressed: pressedButton == "♭", backgroundColor: Color.white.opacity(0.15)) {
+                IntervalNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: noteText.contains("b"), backgroundColor: Color.white.opacity(0.3)) {
                     appendAccidental("b")
                 }
 
                 Spacer()
 
-                IntervalNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.red.opacity(0.3)) {
+                IntervalNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.brandAqua.opacity(0.3)) {
                     backspace()
                 }
             }
         }
-        .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                .fill(Color.white.opacity(0.1))
-        )
     }
 
     private func appendNote(_ note: String) {
@@ -267,7 +311,7 @@ struct IntervalNoteKeyboard: View {
     }
 }
 
-// IntervalNoteButton is now defined in InputAnsView.swift and reused here
+// Note: IntervalNoteButton is defined in InputAnsView.swift and reused here
 
 struct IntervalView_Previews: PreviewProvider {
     static var previews: some View {
@@ -277,4 +321,3 @@ struct IntervalView_Previews: PreviewProvider {
         }
     }
 }
-

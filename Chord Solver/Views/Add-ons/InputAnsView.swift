@@ -245,19 +245,20 @@ struct IntervalNotePickerKeyboard: View {
 struct IntervalNoteButton: View {
     let label: String
     let isPressed: Bool
-    var backgroundColor: Color = Color.white.opacity(0.25)
+    var isSelected: Bool = false
+    var backgroundColor: Color = Color.white.opacity(0.5)
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(isSelected ? .white : .textOnLight)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(backgroundColor)
+                        .fill(isSelected ? Color.accentAqua : backgroundColor)
                         .shadow(
                             color: Color.black.opacity(isPressed ? 0.3 : 0.15),
                             radius: isPressed ? 2 : 4,

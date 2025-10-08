@@ -64,13 +64,13 @@ struct ContentView: View {
                     Spacer()
 
                     // Attribution
-                    Text("app by dylan shade")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundColor(colorScheme == .dark ? .textSecondary : Color.black.opacity(0.5))
-                        .padding(.horizontal, Spacing.screenPadding)
-                        .padding(.bottom, Spacing.xl)
-                        .opacity(titleLettersAnimated ? 1 : 0)
+//                    Text("app by dylan shade")
+//                        .font(.caption)
+//                        .fontWeight(.bold)
+//                        .foregroundColor(colorScheme == .dark ? .textSecondary : Color.black.opacity(0.5))
+//                        .padding(.horizontal, Spacing.screenPadding)
+//                        .padding(.bottom, Spacing.xl)
+//                        .opacity(titleLettersAnimated ? 1 : 0)
 
                     // Single Launch Button to enter the app
                     NavigationLink(destination: MainTabView()) {
@@ -80,7 +80,7 @@ struct ContentView: View {
                                     .foregroundColor(Color.adaptiveBrandCoral(colorScheme))
                                     .frame(height: Spacing.navigationCardHeight)
 
-                                Text("Chord Identifier")
+                                Text("Chords")
                                     .textStyle(.heading3)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, Spacing.contentPadding)
@@ -123,7 +123,6 @@ struct ContentView: View {
                     .padding(.horizontal, Spacing.screenPadding)
                     .padding(.bottom, Spacing.screenPadding)
                 }
-                .navigationBarTitle("App by Dylan Shade")
                 .navigationBarHidden(true)
             }
             .onAppear {

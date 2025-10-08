@@ -39,11 +39,6 @@ struct InputTriadAns: View {
 
             // Note input section
             VStack(spacing: Spacing.md) {
-                Text("Root Note")
-                    .font(.caption)
-                    .foregroundColor(.textSecondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
                 Button(action: {
                     withAnimation(AppAnimation.quickSpring) {
                         showingKeyboard.toggle()
@@ -51,20 +46,23 @@ struct InputTriadAns: View {
                     HapticManager.shared.lightImpact()
                 }) {
                     HStack {
-                        Text(viewModel.root.isEmpty ? "Tap to enter" : viewModel.root)
-                            .foregroundColor(viewModel.root.isEmpty ? .textTertiary : .textPrimary)
+                        Text(viewModel.root.isEmpty ? "Root Note" : viewModel.root)
+                            .foregroundColor(viewModel.root.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
                             .font(.noteName)
 
                         Spacer()
 
                         Image(systemName: showingKeyboard ? "keyboard.chevron.compact.down" : "keyboard")
-                            .foregroundColor(.textSecondary)
+                            .foregroundColor(.textOnLight)
                     }
                     .padding(Spacing.contentPadding)
                     .background(
                         RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                            .fill(Color.white.opacity(0.3))
-                            .shadow(color: Color.black.opacity(0.15), radius: 4, x: 0, y: 2)
+                            .fill(Color.white.opacity(0.5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
+                                    .stroke(Color.black.opacity(0.4), lineWidth: 2)
+                            )
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -83,7 +81,7 @@ struct InputTriadAns: View {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("Chord Quality")
                         .font(.caption)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.textOnLight)
                         .padding(.horizontal, Spacing.screenPadding)
 
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -173,6 +171,7 @@ struct InputTriadAns: View {
                             }
                         }
                         .padding(.horizontal, Spacing.screenPadding)
+                        .padding(.vertical, Spacing.sm)
                     }
                 }
                 .padding(.top, Spacing.md)
@@ -187,9 +186,9 @@ struct InputTriadAns: View {
                 Spacer()
 
                 VStack(spacing: Spacing.lg) {
-                    Text("Chord Notes")
+                    Text(getChordLabel())
                         .font(.bodyRegular)
-                        .foregroundColor(.textSecondary)
+                        .foregroundColor(.textOnLight)
 
                         HStack(spacing: Spacing.sm) {
                             if viewModel.itA6 {
@@ -235,14 +234,54 @@ struct InputTriadAns: View {
                                 }
                             }
                         }
-                    }
-                    .padding(.horizontal, Spacing.screenPadding)
-                    .padding(.bottom, Spacing.xxl)
-                    .transition(.scaleAndFade)
+                }
+                .padding(.horizontal, Spacing.screenPadding)
+                .padding(.bottom, Spacing.xxl)
+                .transition(.scaleAndFade)
 
                 Spacer()
-                }
+            }
         }
+    }
+
+    private func getChordLabel() -> String {
+        let root = viewModel.root
+
+        if viewModel.major {
+            return "\(root) Major"
+        } else if viewModel.minor {
+            return "\(root) Minor"
+        } else if viewModel.aug {
+            return "\(root) Augmented"
+        } else if viewModel.dim {
+            return "\(root) Diminished"
+        } else if viewModel.MM7 {
+            return "\(root) Major 7"
+        } else if viewModel.Mm7 {
+            return "\(root) Dominant 7"
+        } else if viewModel.mm7 {
+            return "\(root) Minor 7"
+        } else if viewModel.hd7 {
+            return "\(root) Half Diminished 7"
+        } else if viewModel.fd7 {
+            return "\(root) Fully Diminished 7"
+        } else if viewModel.mM7 {
+            return "\(root) Minor Major 7"
+        } else if viewModel.sus2 {
+            return "\(root) Sus2"
+        } else if viewModel.sus4 {
+            return "\(root) Sus4"
+        } else if viewModel.itA6 {
+            return "\(root) Italian +6"
+        } else if viewModel.frA6 {
+            return "\(root) French +6"
+        } else if viewModel.gerA6 {
+            return "\(root) German +6"
+        } else if viewModel.ct7 {
+            return "\(root) Common Tone °7"
+        }
+
+        return "Chord Notes"
     }
 }
 
@@ -260,13 +299,13 @@ struct ChordQualityButton: View {
         }) {
             Text(label)
                 .font(.buttonLabel)
-                .foregroundColor(.textPrimary)
+                .foregroundColor(isActive ? .white : .textOnLight)
                 .padding(.horizontal, Spacing.contentPadding)
                 .padding(.vertical, Spacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                        .fill(isActive ? Color.white.opacity(0.4) : Color.white.opacity(0.25))
-                        .shadow(color: Color.black.opacity(isActive ? 0.25 : 0.15), radius: isActive ? 6 : 4, x: 0, y: isActive ? 3 : 2)
+                        .fill(isActive ? Color.accentCoral : Color.white.opacity(0.5))
+                        .shadow(color: Color.white.opacity(isActive ? 0.5 : 0.3), radius: isActive ? 6 : 4, x: 0, y: isActive ? 3 : 2)
                 )
                 .scaleEffect(isActive ? 1.05 : 1.0)
         }
@@ -284,7 +323,7 @@ struct NoteCard: View {
     var body: some View {
         Text(note)
             .font(.system(size: 36, weight: .bold, design: .monospaced))
-            .foregroundColor(.textPrimary)
+            .foregroundColor(.white)
             .lineLimit(1)
             .minimumScaleFactor(0.4)
             .frame(maxWidth: .infinity)
@@ -292,8 +331,8 @@ struct NoteCard: View {
             .padding(.horizontal, Spacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                    .fill(Color.white.opacity(0.35))
-                    .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+                    .fill(Color.accentCoral)
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             )
             .scaleEffect(appeared ? 1.0 : 0.8)
             .opacity(appeared ? 1.0 : 0.0)
@@ -317,7 +356,7 @@ struct TriadNotePickerKeyboard: View {
             // Natural notes (C D E F G A B)
             HStack(spacing: 6) {
                 ForEach(naturalNotes, id: \.self) { note in
-                    TriadNoteButton(label: note, isPressed: pressedButton == note) {
+                    TriadNoteButton(label: note, isPressed: pressedButton == note, isSelected: noteText.starts(with: note)) {
                         appendNote(note)
                     }
                 }
@@ -325,17 +364,17 @@ struct TriadNotePickerKeyboard: View {
 
             // Accidentals (# b) and backspace
             HStack(spacing: 6) {
-                TriadNoteButton(label: "♯", isPressed: pressedButton == "♯", backgroundColor: Color.white.opacity(0.15)) {
+                TriadNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: noteText.contains("#"), backgroundColor: Color.white.opacity(0.3)) {
                     appendAccidental("#")
                 }
 
-                TriadNoteButton(label: "♭", isPressed: pressedButton == "♭", backgroundColor: Color.white.opacity(0.15)) {
+                TriadNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: noteText.contains("b"), backgroundColor: Color.white.opacity(0.3)) {
                     appendAccidental("b")
                 }
 
                 Spacer()
 
-                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.red.opacity(0.3)) {
+                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.brandCoral.opacity(0.3)) {
                     backspace()
                 }
             }
@@ -404,19 +443,20 @@ struct TriadNotePickerKeyboard: View {
 struct TriadNoteButton: View {
     let label: String
     let isPressed: Bool
-    var backgroundColor: Color = Color.white.opacity(0.3)
+    var isSelected: Bool = false
+    var backgroundColor: Color = Color.white.opacity(0.5)
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(label)
                 .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.textPrimary)
+                .foregroundColor(isSelected ? .white : .textOnLight)
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(backgroundColor)
+                        .fill(isSelected ? Color.accentCoral : backgroundColor)
                         .shadow(color: Color.black.opacity(isPressed ? 0.3 : 0.15), radius: isPressed ? 2 : 4, x: 0, y: isPressed ? 1 : 2)
                 )
                 .scaleEffect(isPressed ? 0.95 : 1.0)

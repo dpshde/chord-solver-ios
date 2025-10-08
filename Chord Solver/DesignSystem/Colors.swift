@@ -72,6 +72,17 @@ extension Color {
     /// Button/interactive element pressed state
     static let interactivePressed = Color.white.opacity(0.85)
 
+    // MARK: - Accent Colors for Interactive Elements
+
+    /// Accent color for chord view buttons (darker pastel pink/coral for better contrast with white text)
+    static let accentCoral = Color(red: 0.95, green: 0.65, blue: 0.65)
+
+    /// Accent color for scale view buttons (darker pastel purple for better contrast with white text)
+    static let accentPurple = Color(red: 0.75, green: 0.70, blue: 0.95)
+
+    /// Accent color for interval view buttons (darker pastel aqua for better contrast with white text)
+    static let accentAqua = Color(red: 0.60, green: 0.80, blue: 0.85)
+
     // MARK: - Text Colors
 
     /// Primary text color (on colored backgrounds) - High contrast white
