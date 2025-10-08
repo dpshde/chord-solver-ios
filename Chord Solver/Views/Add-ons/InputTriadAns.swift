@@ -185,12 +185,12 @@ struct InputTriadAns: View {
 
                 Spacer()
 
-                VStack(spacing: Spacing.lg) {
+                VStack(spacing: Spacing.md) {
                     Text(getChordLabel())
-                        .font(.bodyRegular)
-                        .foregroundColor(.textOnLight)
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
 
-                        HStack(spacing: Spacing.sm) {
+                    HStack(spacing: Spacing.sm) {
                             if viewModel.itA6 {
                                 NoteCard(note: viewModel.find6th())
                                 NoteCard(note: viewModel.returnRoot())
@@ -235,6 +235,14 @@ struct InputTriadAns: View {
                             }
                         }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.xl)
+                .background(
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+                        .fill(Color.brandCoral)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                )
                 .padding(.horizontal, Spacing.screenPadding)
                 .padding(.bottom, Spacing.xxl)
                 .transition(.scaleAndFade)
@@ -323,7 +331,7 @@ struct NoteCard: View {
     var body: some View {
         Text(note)
             .font(.system(size: 36, weight: .bold, design: .monospaced))
-            .foregroundColor(.white)
+            .foregroundColor(.brandCoral)
             .lineLimit(1)
             .minimumScaleFactor(0.4)
             .frame(maxWidth: .infinity)
@@ -331,7 +339,7 @@ struct NoteCard: View {
             .padding(.horizontal, Spacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                    .fill(Color.brandCoral)
+                    .fill(Color.white)
                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             )
             .scaleEffect(appeared ? 1.0 : 0.8)

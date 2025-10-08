@@ -142,10 +142,10 @@ struct IntervalView: View {
             if !intervalResult.isEmpty {
                 Spacer()
 
-                VStack(spacing: Spacing.lg) {
+                VStack(spacing: Spacing.md) {
                     Text(getIntervalLabel())
-                        .font(.bodyRegular)
-                        .foregroundColor(.textOnLight)
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
 
                     Text(intervalResult)
                         .font(.system(size: 40, weight: .bold, design: .rounded))
@@ -153,15 +153,15 @@ struct IntervalView: View {
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                         .minimumScaleFactor(0.5)
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.vertical, Spacing.xl)
-                        .background(
-                            RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                .fill(Color.brandAqua)
-                                .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                        )
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.xl)
+                .background(
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+                        .fill(Color.brandAqua)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                )
                 .padding(.horizontal, Spacing.screenPadding)
                 .padding(.bottom, Spacing.xxl)
                 .transition(.scaleAndFade)

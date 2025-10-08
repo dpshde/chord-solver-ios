@@ -166,10 +166,10 @@ struct scalesAnsView: View {
 
                 Spacer()
 
-                VStack(spacing: Spacing.lg) {
+                VStack(spacing: Spacing.md) {
                     Text(getScaleLabel())
-                        .font(.bodyRegular)
-                        .foregroundColor(.textOnLight)
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .foregroundColor(.white)
 
                     if viewModel.pentatonic {
                         // Pentatonic scale (5 notes)
@@ -231,6 +231,14 @@ struct scalesAnsView: View {
                         }
                     }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical, Spacing.xl)
+                .background(
+                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+                        .fill(Color.brandPurple)
+                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+                )
                 .padding(.horizontal, Spacing.screenPadding)
                 .padding(.bottom, Spacing.xxl)
                 .transition(.scaleAndFade)
@@ -319,7 +327,7 @@ struct ScaleNoteCard: View {
     var body: some View {
         Text(note)
             .font(.system(size: 28, weight: .bold, design: .monospaced))
-            .foregroundColor(.white)
+            .foregroundColor(.brandPurple)
             .lineLimit(1)
             .minimumScaleFactor(0.4)
             .frame(maxWidth: .infinity)
@@ -327,7 +335,7 @@ struct ScaleNoteCard: View {
             .padding(.horizontal, Spacing.xs)
             .background(
                 RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                    .fill(Color.brandPurple)
+                    .fill(Color.white)
                     .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
             )
             .scaleEffect(appeared ? 1.0 : 0.8)

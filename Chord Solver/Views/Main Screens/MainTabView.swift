@@ -78,10 +78,6 @@ struct TabBar: View {
         }
         .frame(height: 72)
         .padding(.top, 8)
-        .background(
-            Color.darkBeige
-                .ignoresSafeArea(edges: .bottom)
-        )
     }
 }
 
