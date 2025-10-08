@@ -36,7 +36,7 @@ struct MainTabView: View {
                     icon: "music.note.list",
                     label: "Chords",
                     isSelected: selectedTab == 0,
-                    accentColor: .lightTintCoral,
+                    accentColor: .tabHighlightCoral,
                     edgePosition: .left
                 ) {
                     selectedTab = 0
@@ -47,7 +47,7 @@ struct MainTabView: View {
                     icon: "music.quarternote.3",
                     label: "Scales",
                     isSelected: selectedTab == 1,
-                    accentColor: .lightTintPurple,
+                    accentColor: .tabHighlightPurple,
                     edgePosition: .none
                 ) {
                     selectedTab = 1
@@ -58,7 +58,7 @@ struct MainTabView: View {
                     icon: "arrow.left.and.right",
                     label: "Intervals",
                     isSelected: selectedTab == 2,
-                    accentColor: .lightTintAqua,
+                    accentColor: .tabHighlightAqua,
                     edgePosition: .right
                 ) {
                     selectedTab = 2
