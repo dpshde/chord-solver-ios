@@ -371,7 +371,7 @@ struct ScaleNotePickerKeyboard: View {
 
                 Spacer()
 
-                ScaleNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.neutralGray) {
+                ScaleNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.pastelRed) {
                     backspace()
                 }
             }

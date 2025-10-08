@@ -168,7 +168,7 @@ struct IntervalNotePickerKeyboard: View {
                 IntervalNoteButton(
                     label: "⌫",
                     isPressed: pressedButton == "⌫",
-                    backgroundColor: Color.neutralGray
+                    backgroundColor: Color.pastelRed
                 ) {
                     backspace()
                 }

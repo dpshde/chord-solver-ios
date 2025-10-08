@@ -97,6 +97,9 @@ extension Color {
     /// Neutral gray for non-selection buttons (like backspace)
     static let neutralGray = Color(red: 0.85, green: 0.85, blue: 0.85)
 
+    /// Subtle pastel red for backspace button
+    static let pastelRed = Color(red: 1.0, green: 0.93, blue: 0.93)
+
     // MARK: - Text Colors
 
     /// Primary text color (on colored backgrounds) - High contrast white

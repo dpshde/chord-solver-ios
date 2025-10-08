@@ -374,7 +374,7 @@ struct TriadNotePickerKeyboard: View {
 
                 Spacer()
 
-                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.neutralGray) {
+                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.pastelRed) {
                     backspace()
                 }
             }
