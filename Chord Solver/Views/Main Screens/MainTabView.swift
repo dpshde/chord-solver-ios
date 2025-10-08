@@ -37,7 +37,7 @@ struct MainTabView: View {
                     label: "Chords",
                     isSelected: selectedTab == 0,
                     accentColor: .lightTintCoral,
-                    isEdgeTab: true
+                    edgePosition: .left
                 ) {
                     selectedTab = 0
                     HapticManager.shared.selectionChanged()
@@ -48,7 +48,7 @@ struct MainTabView: View {
                     label: "Scales",
                     isSelected: selectedTab == 1,
                     accentColor: .lightTintPurple,
-                    isEdgeTab: false
+                    edgePosition: .none
                 ) {
                     selectedTab = 1
                     HapticManager.shared.selectionChanged()
@@ -59,7 +59,7 @@ struct MainTabView: View {
                     label: "Intervals",
                     isSelected: selectedTab == 2,
                     accentColor: .lightTintAqua,
-                    isEdgeTab: true
+                    edgePosition: .right
                 ) {
                     selectedTab = 2
                     HapticManager.shared.selectionChanged()
@@ -76,12 +76,16 @@ struct MainTabView: View {
 
 // MARK: - Custom Tab Button
 
+enum TabEdgePosition {
+    case left, right, none
+}
+
 struct CustomTabButton: View {
     let icon: String
     let label: String
     let isSelected: Bool
     let accentColor: Color
-    var isEdgeTab: Bool = false
+    var edgePosition: TabEdgePosition = .none
     let action: () -> Void
 
     var body: some View {
@@ -99,10 +103,15 @@ struct CustomTabButton: View {
             .padding(.horizontal, 8)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? accentColor : Color.clear)
+                UnevenRoundedRectangle(
+                    topLeadingRadius: edgePosition == .left ? 0 : 12,
+                    bottomLeadingRadius: edgePosition == .left ? 0 : 12,
+                    bottomTrailingRadius: edgePosition == .right ? 0 : 12,
+                    topTrailingRadius: edgePosition == .right ? 0 : 12
+                )
+                .fill(isSelected ? accentColor : Color.clear)
             )
-            .padding(.horizontal, isEdgeTab ? 0 : 4)
+            .padding(.horizontal, edgePosition == .none ? 4 : 0)
         }
         .frame(height: 72)
         .buttonStyle(PlainButtonStyle())
