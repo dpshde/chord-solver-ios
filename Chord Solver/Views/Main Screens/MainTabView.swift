@@ -68,8 +68,8 @@ struct MainTabView: View {
             .padding(.top, 8)
             .background(
                 Color.darkBeige
-                    .ignoresSafeArea(edges: .bottom)
             )
+            .ignoresSafeArea(edges: .bottom)
         }
     }
 }
