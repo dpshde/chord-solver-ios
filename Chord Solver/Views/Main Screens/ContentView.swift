@@ -4,6 +4,7 @@
 //
 //  Created by Dylan Shade on 4/7/21.
 //  Modernized on 10/8/25 - UI Revival 2025
+//  Landing is a one-shot entry; tabs own section switching after that.
 //
 
 import SwiftUI
@@ -12,142 +13,124 @@ import SwiftUI
 
 struct ContentView: View {
 
+    /// When set, MainTabView is the app root (no nested NavigationLink stack).
+    @State private var activeSection: MainSectionTab?
     @State private var titleLettersAnimated = false
     @State private var cardsAnimated = false
 
-    init() {
-        // Configure navigation bar appearance
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithTransparentBackground()
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().tintColor = .white // Back button and other tint items
-    }
+    @AppStorage("chordSolver.lastSectionRaw") private var lastSectionRaw: Int = 0
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                // Background with gradient overlay for depth
-                Color.brandBeige
-                    .overlay(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.clear,
-                                Color.black.opacity(0.02)
-                            ]),
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .ignoresSafeArea()
-
-                VStack(alignment: .leading, spacing: 0) {
-
-                    Spacer()
-
-                    // Animated Hero Title
-                    VStack(alignment: .leading, spacing: -Spacing.md) {
-                        AnimatedTitleText(text: "Chord", delay: 0.0)
-                            .opacity(titleLettersAnimated ? 1 : 0)
-                            .offset(y: titleLettersAnimated ? 0 : 20)
-
-                        AnimatedTitleText(text: "Solver", delay: 0.15)
-                            .opacity(titleLettersAnimated ? 1 : 0)
-                            .offset(y: titleLettersAnimated ? 0 : 20)
+        Group {
+            if let section = activeSection {
+                MainTabView(initialTab: section.rawValue) {
+                    withAnimation(AppAnimation.smoothSpring) {
+                        activeSection = nil
                     }
-                    .padding(.horizontal, Spacing.screenPadding)
-
-                    Spacer()
-
-                    // Attribution
-//                    Text("app by dylan shade")
-//                        .font(.caption)
-//                        .fontWeight(.bold)
-//                        .foregroundColor(Color.black.opacity(0.5))
-//                        .padding(.horizontal, Spacing.screenPadding)
-//                        .padding(.bottom, Spacing.xl)
-//                        .opacity(titleLettersAnimated ? 1 : 0)
-
-                    // Navigation cards to enter the app
-                    VStack(spacing: Spacing.cardSpacing) {
-                        NavigationLink(destination: MainTabView(initialTab: 0)) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                    .foregroundColor(Color.brandCoral)
-                                    .frame(height: Spacing.navigationCardHeight)
-
-                                Text("Chords")
-                                    .textStyle(.heading3)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, Spacing.contentPadding)
-                            }
-                        }
-                        .simultaneousGesture(
-                            TapGesture().onEnded { _ in
-                                HapticManager.shared.navigate()
-                            }
-                        )
-
-                        NavigationLink(destination: MainTabView(initialTab: 1)) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                    .foregroundColor(Color.brandPurple)
-                                    .frame(height: Spacing.navigationCardHeight)
-
-                                Text("Scales")
-                                    .textStyle(.heading3)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, Spacing.contentPadding)
-                            }
-                        }
-                        .simultaneousGesture(
-                            TapGesture().onEnded { _ in
-                                HapticManager.shared.navigate()
-                            }
-                        )
-
-                        NavigationLink(destination: MainTabView(initialTab: 2)) {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                                    .foregroundColor(Color.brandAqua)
-                                    .frame(height: Spacing.navigationCardHeight)
-
-                                Text("Intervals")
-                                    .textStyle(.heading3)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, Spacing.contentPadding)
-                            }
-                        }
-                        .simultaneousGesture(
-                            TapGesture().onEnded { _ in
-                                HapticManager.shared.navigate()
-                            }
-                        )
-                    }
-                    .opacity(cardsAnimated ? 1 : 0)
-                    .offset(y: cardsAnimated ? 0 : 30)
-                    .animation(
-                        AppAnimation.smoothSpring.delay(0.3),
-                        value: cardsAnimated
-                    )
-                    .padding(.horizontal, Spacing.screenPadding)
-                    .padding(.bottom, Spacing.screenPadding)
                 }
-                .navigationBarHidden(true)
-            }
-            .onAppear {
-                withAnimation(AppAnimation.smoothSpring.delay(0.1)) {
-                    titleLettersAnimated = true
-                }
-                withAnimation(AppAnimation.smoothSpring.delay(0.2)) {
-                    cardsAnimated = true
-                }
+                .transition(.opacity)
+            } else {
+                landing
+                    .transition(.opacity)
             }
         }
-        .navigationViewStyle(StackNavigationViewStyle())
+        .animation(AppAnimation.smoothSpring, value: activeSection != nil)
+    }
+
+    // MARK: - Landing
+
+    private var landing: some View {
+        ZStack {
+            Color.brandBeige
+                .overlay(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.clear,
+                            Color.black.opacity(0.02)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 0) {
+                Spacer()
+
+                VStack(alignment: .leading, spacing: -Spacing.md) {
+                    AnimatedTitleText(text: "Chord", delay: 0.0)
+                        .opacity(titleLettersAnimated ? 1 : 0)
+                        .offset(y: titleLettersAnimated ? 0 : 20)
+
+                    AnimatedTitleText(text: "Solver", delay: 0.15)
+                        .opacity(titleLettersAnimated ? 1 : 0)
+                        .offset(y: titleLettersAnimated ? 0 : 20)
+                }
+                .padding(.horizontal, Spacing.screenPadding)
+
+                Text("Pick a section — switch anytime with tabs")
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundColor(.textOnBeige.opacity(0.55))
+                    .padding(.horizontal, Spacing.screenPadding)
+                    .padding(.top, Spacing.lg)
+                    .opacity(titleLettersAnimated ? 1 : 0)
+
+                Spacer()
+
+                VStack(spacing: Spacing.cardSpacing) {
+                    landingCard(
+                        title: MainSectionTab.chords.title,
+                        color: .brandCoralSoft,
+                        tab: .chords
+                    )
+                    landingCard(
+                        title: MainSectionTab.scales.title,
+                        color: .brandPurpleSoft,
+                        tab: .scales
+                    )
+                    landingCard(
+                        title: MainSectionTab.intervals.title,
+                        color: .brandAquaSoft,
+                        tab: .intervals
+                    )
+                }
+                .opacity(cardsAnimated ? 1 : 0)
+                .offset(y: cardsAnimated ? 0 : 30)
+                .animation(AppAnimation.smoothSpring.delay(0.3), value: cardsAnimated)
+                .padding(.horizontal, Spacing.screenPadding)
+                .padding(.bottom, Spacing.screenPadding)
+            }
+        }
+        .onAppear {
+            withAnimation(AppAnimation.smoothSpring.delay(0.1)) {
+                titleLettersAnimated = true
+            }
+            withAnimation(AppAnimation.smoothSpring.delay(0.2)) {
+                cardsAnimated = true
+            }
+        }
+    }
+
+    private func landingCard(title: String, color: Color, tab: MainSectionTab) -> some View {
+        Button {
+            HapticManager.shared.navigate()
+            lastSectionRaw = tab.rawValue
+            withAnimation(AppAnimation.smoothSpring) {
+                activeSection = tab
+            }
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+                    .foregroundColor(color)
+                    .frame(height: Spacing.navigationCardHeight)
+
+                Text(title)
+                    .textStyle(.heading3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, Spacing.contentPadding)
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

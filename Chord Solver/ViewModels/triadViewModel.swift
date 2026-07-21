@@ -132,6 +132,7 @@ class triadBuildViewModel: ObservableObject {
             return [botTemp, midTemp, topTemp]
         }
         else if sus2 {
+            // Empty slot keeps legacy index layout used by sus2nd()/sus2fifth().
             botTemp = "M2"
             topTemp = "P5"
             return ["", botTemp, topTemp]
@@ -144,6 +145,39 @@ class triadBuildViewModel: ObservableObject {
         
         
         return [botTemp , topTemp]
+    }
+
+    // MARK: - Interval formula (for UI)
+
+    /// Intervals above the root that build this chord, in compact theory labels.
+    /// Example: Major → `["M3", "P5"]`, Dominant 7 → `["M3", "P5", "m7"]`.
+    func chordIntervalsFromRoot() -> [String] {
+        quality()
+            .filter { !$0.isEmpty }
+            .map(Self.compactIntervalLabel)
+    }
+
+    /// Full stack including the root as `R`, e.g. `["R", "M3", "P5"]`.
+    func chordIntervalStack() -> [String] {
+        ["R"] + chordIntervalsFromRoot()
+    }
+
+    /// Display string: `R · M3 · P5 · m7`
+    func chordIntervalFormula() -> String {
+        chordIntervalStack().joined(separator: "  ·  ")
+    }
+
+    /// Map long quality() strings to compact interval symbols for the UI.
+    static func compactIntervalLabel(_ raw: String) -> String {
+        switch raw {
+        case "Augmented 5th": return "A5"
+        case "Diminished 5th": return "d5"
+        case "Diminished 7th": return "d7"
+        case "Augmented 4th": return "A4"
+        case "Augmented 2nd": return "A2"
+        case "Augmented 3rd": return "A3"
+        default: return raw
+        }
     }
     
     func sus2nd() -> String {

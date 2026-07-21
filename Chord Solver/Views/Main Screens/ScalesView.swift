@@ -10,7 +10,8 @@ import SwiftUI
 
 struct ScalesView: View {
 
-    @StateObject var viewModel = scalesViewModel()
+    /// Provided by MainTabView so the scale root survives tab switches.
+    @EnvironmentObject var viewModel: scalesViewModel
 
     var body: some View {
         scalesAnsView()
@@ -21,5 +22,6 @@ struct ScalesView: View {
 struct ScalesView_Previews: PreviewProvider {
     static var previews: some View {
         ScalesView()
+            .environmentObject(scalesViewModel())
     }
 }

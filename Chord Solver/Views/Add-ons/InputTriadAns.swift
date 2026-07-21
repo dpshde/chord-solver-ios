@@ -8,245 +8,233 @@
 import SwiftUI
 
 struct InputTriadAns: View {
-    
+
     var remove: (() -> Void)? = nil
-    
+
     @EnvironmentObject var viewModel: triadBuildViewModel
     @Environment(\.colorScheme) var colorScheme
 
-    @State var offset = CGSize.zero
-    @State var root: String = ""
-    @State var triad: Bool = true
     @State private var showingKeyboard = false
-    
-    let notes: [String: Int] = [
-        "A###": 0,"B#": 0, "C":0, "Dbb": 0,
-        "B##": 1, "C#": 1, "Db": 1, "Ebbb": 1,
-        "B###": 2, "C##": 2, "D": 2, "Ebb": 2, "Fbbb": 2,
-        "C###": 3, "D#": 3, "Eb": 3, "Fbb": 3,
-        "D##": 4, "E": 4, "Fb": 4, "Gbbb":4,
-        "E#": 5, "F": 5, "Gbb": 5,
-        "E##": 6, "F#": 6, "Gb": 6, "Abbb": 6,
-        "E###": 7, "F##": 7, "G": 7, "Abb": 7,
-        "F###": 8, "G#": 8, "Ab": 8, "Bbbb": 8,
-        "G##": 9, "A": 9, "Bbb": 9, "Cbbb": 9,
-        "G###": 10, "A#": 10, "Bb": 10, "Cbb":10,
-        "A##": 11, "B": 11, "Cb": 11, "Dbbb":11
-    ]
+    @State private var showMoreQualities = false
+    @State private var rootCollapseWorkItem: DispatchWorkItem?
+
+    private var hasQualitySelected: Bool {
+        viewModel.major || viewModel.minor || viewModel.aug || viewModel.dim ||
+        viewModel.MM7 || viewModel.Mm7 || viewModel.mm7 || viewModel.hd7 || viewModel.fd7 || viewModel.mM7 ||
+        viewModel.sus2 || viewModel.sus4 || viewModel.itA6 || viewModel.frA6 || viewModel.gerA6 || viewModel.ct7
+    }
+
+    private var showResult: Bool {
+        !viewModel.root.isEmpty && hasQualitySelected
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-
-            // Note input section
-            VStack(spacing: Spacing.md) {
-                Button(action: {
-                    withAnimation(AppAnimation.quickSpring) {
-                        showingKeyboard.toggle()
-                    }
-                    HapticManager.shared.lightImpact()
-                }) {
-                    HStack {
-                        Text(viewModel.root.isEmpty ? "Root Note" : viewModel.root)
-                            .foregroundColor(viewModel.root.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
-                            .font(.noteName)
-
-                        Spacer()
-
-                        Image(systemName: showingKeyboard ? "keyboard.chevron.compact.down" : "keyboard")
-                            .foregroundColor(.textOnLight)
-                    }
-                    .padding(Spacing.contentPadding)
-                    .background(
-                        RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                            .fill(Color.white.opacity(0.5))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                    .stroke(Color.black.opacity(0.4), lineWidth: 2)
-                            )
-                    )
+        ScrollView {
+            VStack(spacing: 0) {
+                if viewModel.root.isEmpty {
+                    InputCoachingLine(text: "Choose a root, then a quality")
                 }
-                .buttonStyle(PlainButtonStyle())
 
-                // Custom note keyboard (shown when active)
+                RootNoteField(
+                    placeholder: "Root Note",
+                    root: viewModel.root,
+                    isKeyboardVisible: showingKeyboard,
+                    accentTint: .brandCoral,
+                    onToggleKeyboard: {
+                        withAnimation(AppAnimation.quickSpring) {
+                            showingKeyboard.toggle()
+                        }
+                        HapticManager.shared.lightImpact()
+                    },
+                    onClear: {
+                        withAnimation(AppAnimation.quickSpring) {
+                            viewModel.root = ""
+                            showingKeyboard = false
+                        }
+                    }
+                )
+                .padding(.top, Spacing.md)
+
                 if showingKeyboard {
                     TriadNotePickerKeyboard(noteText: $viewModel.root)
+                        .padding(.horizontal, Spacing.screenPadding)
+                        .padding(.top, Spacing.sm)
                         .transition(.slideFromBottom)
                 }
-            }
-            .padding(.horizontal, Spacing.screenPadding)
-            .padding(.top, Spacing.md)
 
-            // Chord Quality - Single horizontal scroll with all options
-            if !viewModel.root.isEmpty {
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("Chord Quality")
-                        .font(.caption)
-                        .foregroundColor(.textOnLight)
-                        .padding(.horizontal, Spacing.screenPadding)
+                if !viewModel.root.isEmpty {
+                    GroupedOptionPicker(
+                        sectionTitle: "Chord Quality",
+                        common: commonQualityOptions,
+                        moreGroups: moreQualityGroups,
+                        activeFill: .brandCoral,
+                        selectedAccent: .brandCoral,
+                        showMore: $showMoreQualities
+                    )
+                    .padding(.top, Spacing.md)
+                    .transition(.scaleAndFade)
+                }
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: Spacing.xs) {
-                            // Common triads
-                            ChordQualityButton(label: "Major", isActive: viewModel.major) {
-                                viewModel.resetButtons()
-                                viewModel.major = true
-                            }
-                            ChordQualityButton(label: "Minor", isActive: viewModel.minor) {
-                                viewModel.resetButtons()
-                                viewModel.minor = true
-                            }
-                            ChordQualityButton(label: "+", isActive: viewModel.aug) {
-                                viewModel.resetButtons()
-                                viewModel.aug = true
-                            }
-                            ChordQualityButton(label: "°", isActive: viewModel.dim) {
-                                viewModel.resetButtons()
-                                viewModel.dim = true
-                            }
-
-                            Divider()
-                                .frame(height: 30)
-                                .background(Color.white.opacity(0.3))
-
-                            // Seventh chords
-                            ChordQualityButton(label: "MM7", isActive: viewModel.MM7) {
-                                viewModel.resetButtons()
-                                viewModel.MM7 = true
-                            }
-                            ChordQualityButton(label: "Mm7", isActive: viewModel.Mm7) {
-                                viewModel.resetButtons()
-                                viewModel.Mm7 = true
-                            }
-                            ChordQualityButton(label: "mm7", isActive: viewModel.mm7) {
-                                viewModel.resetButtons()
-                                viewModel.mm7 = true
-                            }
-                            ChordQualityButton(label: "ø7", isActive: viewModel.hd7) {
-                                viewModel.resetButtons()
-                                viewModel.hd7 = true
-                            }
-                            ChordQualityButton(label: "°7", isActive: viewModel.fd7) {
-                                viewModel.resetButtons()
-                                viewModel.fd7 = true
-                            }
-                            ChordQualityButton(label: "mM7", isActive: viewModel.mM7) {
-                                viewModel.resetButtons()
-                                viewModel.mM7 = true
-                            }
-
-                            Divider()
-                                .frame(height: 30)
-                                .background(Color.white.opacity(0.3))
-
-                            // Sus chords
-                            ChordQualityButton(label: "Sus2", isActive: viewModel.sus2) {
-                                viewModel.resetButtons()
-                                viewModel.sus2 = true
-                            }
-                            ChordQualityButton(label: "Sus4", isActive: viewModel.sus4) {
-                                viewModel.resetButtons()
-                                viewModel.sus4 = true
-                            }
-
-                            Divider()
-                                .frame(height: 30)
-                                .background(Color.white.opacity(0.3))
-
-                            // Augmented sixths
-                            ChordQualityButton(label: "It+6", isActive: viewModel.itA6) {
-                                viewModel.resetButtons()
-                                viewModel.itA6 = true
-                            }
-                            ChordQualityButton(label: "Fr+6", isActive: viewModel.frA6) {
-                                viewModel.resetButtons()
-                                viewModel.frA6 = true
-                            }
-                            ChordQualityButton(label: "Ger+6", isActive: viewModel.gerA6) {
-                                viewModel.resetButtons()
-                                viewModel.gerA6 = true
-                            }
-                            ChordQualityButton(label: "CT°7", isActive: viewModel.ct7) {
-                                viewModel.resetButtons()
-                                viewModel.ct7 = true
-                            }
-                        }
-                        .padding(.horizontal, Spacing.screenPadding)
-                        .padding(.vertical, Spacing.sm)
+                if showResult {
+                    AnswerResultPanel(title: getChordLabel(), accent: .brandCoral) {
+                        chordNotesRow
                     }
                 }
-                .padding(.top, Spacing.md)
-                .transition(.scaleAndFade)
+
+                Spacer(minLength: Spacing.xxxl)
             }
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .onChange(of: viewModel.root) { _, newValue in
+            scheduleKeyboardCollapseIfNeeded(root: newValue)
+        }
+    }
 
-            // Result Display - Chord Notes
-            if !viewModel.root.isEmpty && (viewModel.major || viewModel.minor || viewModel.aug || viewModel.dim ||
-                viewModel.MM7 || viewModel.Mm7 || viewModel.mm7 || viewModel.hd7 || viewModel.fd7 || viewModel.mM7 ||
-                viewModel.sus2 || viewModel.sus4 || viewModel.itA6 || viewModel.frA6 || viewModel.gerA6 || viewModel.ct7) {
+    // MARK: - Quality options
 
-                Spacer()
+    private var commonQualityOptions: [ChipOption] {
+        [
+            chip("major", "Major", nil, viewModel.major) { select { $0.major = true } },
+            chip("minor", "Minor", nil, viewModel.minor) { select { $0.minor = true } },
+            chip("aug", "Aug", "+", viewModel.aug) { select { $0.aug = true } },
+            chip("dim", "Dim", "°", viewModel.dim) { select { $0.dim = true } },
+        ]
+    }
 
-                VStack(spacing: Spacing.md) {
-                    Text(getChordLabel())
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
+    private var moreQualityGroups: [(title: String, options: [ChipOption])] {
+        [
+            (
+                "Sevenths",
+                [
+                    chip("mm7full", "Major 7", "MM7", viewModel.MM7) { select { $0.MM7 = true } },
+                    chip("dom7", "Dom 7", "Mm7", viewModel.Mm7) { select { $0.Mm7 = true } },
+                    chip("min7", "Minor 7", "mm7", viewModel.mm7) { select { $0.mm7 = true } },
+                    chip("hd7", "Half-dim 7", "ø7", viewModel.hd7) { select { $0.hd7 = true } },
+                    chip("fd7", "Fully dim 7", "°7", viewModel.fd7) { select { $0.fd7 = true } },
+                    chip("mM7", "Min-Maj 7", "mM7", viewModel.mM7) { select { $0.mM7 = true } },
+                ]
+            ),
+            (
+                "Suspended",
+                [
+                    chip("sus2", "Sus2", nil, viewModel.sus2) { select { $0.sus2 = true } },
+                    chip("sus4", "Sus4", nil, viewModel.sus4) { select { $0.sus4 = true } },
+                ]
+            ),
+            (
+                "Augmented 6ths & CT",
+                [
+                    chip("it6", "Italian +6", "It+6", viewModel.itA6) { select { $0.itA6 = true } },
+                    chip("fr6", "French +6", "Fr+6", viewModel.frA6) { select { $0.frA6 = true } },
+                    chip("ger6", "German +6", "Ger+6", viewModel.gerA6) { select { $0.gerA6 = true } },
+                    chip("ct7", "CT °7", "CT°7", viewModel.ct7) { select { $0.ct7 = true } },
+                ]
+            ),
+        ]
+    }
 
-                    HStack(spacing: Spacing.sm) {
-                            if viewModel.itA6 {
-                                NoteCard(note: viewModel.find6th())
-                                NoteCard(note: viewModel.returnRoot())
-                                NoteCard(note: viewModel.find4th())
-                            }
-                            else if viewModel.gerA6 {
-                                NoteCard(note: viewModel.find6th())
-                                NoteCard(note: viewModel.returnRoot())
-                                NoteCard(note: viewModel.augSpic())
-                                NoteCard(note: viewModel.find4th())
-                            }
-                            else if viewModel.frA6 {
-                                NoteCard(note: viewModel.find6th())
-                                NoteCard(note: viewModel.returnRoot())
-                                NoteCard(note: viewModel.augSpic2())
-                                NoteCard(note: viewModel.find4th())
-                            }
-                            else if viewModel.sus2 {
-                                NoteCard(note: viewModel.returnRoot())
-                                NoteCard(note: viewModel.sus2nd())
-                                NoteCard(note: viewModel.sus2fifth())
-                            }
-                            else if viewModel.sus4 {
-                                NoteCard(note: viewModel.returnRoot())
-                                NoteCard(note: viewModel.find4th())
-                                NoteCard(note: viewModel.sus4fifth())
-                            }
-                            else if viewModel.ct7 {
-                                NoteCard(note: viewModel.ct2nd())
-                                NoteCard(note: viewModel.ct4th())
-                                NoteCard(note: viewModel.ct6th())
-                                NoteCard(note: viewModel.returnRoot())
-                            }
-                            else {
-                                NoteCard(note: viewModel.returnRoot())
-                                NoteCard(note: viewModel.triadThird())
-                                NoteCard(note: viewModel.triadFifth())
+    private func chip(
+        _ id: String,
+        _ title: String,
+        _ detail: String?,
+        _ isActive: Bool,
+        action: @escaping () -> Void
+    ) -> ChipOption {
+        ChipOption(id: id, title: title, detail: detail, isActive: isActive, action: action)
+    }
 
-                                if viewModel.MM7 || viewModel.Mm7 || viewModel.mm7 || viewModel.fd7 || viewModel.hd7 || viewModel.mM7 {
-                                    NoteCard(note: viewModel.triadSev())
-                                }
-                            }
-                        }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.vertical, Spacing.xl)
-                .background(
-                    RoundedRectangle(cornerRadius: 0)
-                        .fill(Color.brandCoral)
-                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                )
-                .padding(.bottom, Spacing.xxl)
-                .transition(.scaleAndFade)
+    private func select(_ mutate: (triadBuildViewModel) -> Void) {
+        withAnimation(AppAnimation.quickSpring) {
+            viewModel.resetButtons()
+            mutate(viewModel)
+            showingKeyboard = false
+            // Always collapse advanced; selection is pinned into the preview tiles.
+            showMoreQualities = false
+        }
+    }
 
-                Spacer()
+    private func scheduleKeyboardCollapseIfNeeded(root: String) {
+        rootCollapseWorkItem?.cancel()
+        guard !root.isEmpty else { return }
+        let work = DispatchWorkItem {
+            withAnimation(AppAnimation.quickSpring) {
+                showingKeyboard = false
+            }
+        }
+        rootCollapseWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: work)
+    }
+
+    // MARK: - Notes + intervals (aligned under each tone)
+
+    /// Note name paired with its interval from the chord root (or role label for special stacks).
+    private var chordTones: [(note: String, interval: String)] {
+        if viewModel.itA6 {
+            // Spelling order for +6: ♭6 – 1 – ♯4
+            return [
+                (viewModel.find6th(), "m6"),
+                (viewModel.returnRoot(), "R"),
+                (viewModel.find4th(), "A4"),
+            ]
+        }
+        if viewModel.gerA6 {
+            return [
+                (viewModel.find6th(), "m6"),
+                (viewModel.returnRoot(), "R"),
+                (viewModel.augSpic(), "M3"),
+                (viewModel.find4th(), "A4"),
+            ]
+        }
+        if viewModel.frA6 {
+            return [
+                (viewModel.find6th(), "m6"),
+                (viewModel.returnRoot(), "R"),
+                (viewModel.augSpic2(), "M2"),
+                (viewModel.find4th(), "A4"),
+            ]
+        }
+        if viewModel.sus2 {
+            return [
+                (viewModel.returnRoot(), "R"),
+                (viewModel.sus2nd(), "M2"),
+                (viewModel.sus2fifth(), "P5"),
+            ]
+        }
+        if viewModel.sus4 {
+            return [
+                (viewModel.returnRoot(), "R"),
+                (viewModel.find4th(), "P4"),
+                (viewModel.sus4fifth(), "P5"),
+            ]
+        }
+        if viewModel.ct7 {
+            // CT°7: tones around the common-tone root
+            return [
+                (viewModel.ct2nd(), "A2"),
+                (viewModel.ct4th(), "A4"),
+                (viewModel.ct6th(), "M6"),
+                (viewModel.returnRoot(), "R"),
+            ]
+        }
+
+        // Standard root-position triads / sevenths — zip notes with interval stack.
+        var notes = [
+            viewModel.returnRoot(),
+            viewModel.triadThird(),
+            viewModel.triadFifth(),
+        ]
+        if viewModel.MM7 || viewModel.Mm7 || viewModel.mm7 || viewModel.fd7 || viewModel.hd7 || viewModel.mM7 {
+            notes.append(viewModel.triadSev())
+        }
+        let intervals = viewModel.chordIntervalStack()
+        return zip(notes, intervals).map { (note: $0.0, interval: $0.1) }
+    }
+
+    @ViewBuilder
+    private var chordNotesRow: some View {
+        HStack(spacing: Spacing.sm) {
+            ForEach(Array(chordTones.enumerated()), id: \.offset) { _, tone in
+                NoteCard(note: tone.note, interval: tone.interval)
             }
         }
     }
@@ -254,100 +242,94 @@ struct InputTriadAns: View {
     private func getChordLabel() -> String {
         let root = viewModel.root
 
-        if viewModel.major {
-            return "\(root) Major"
-        } else if viewModel.minor {
-            return "\(root) Minor"
-        } else if viewModel.aug {
-            return "\(root) Augmented"
-        } else if viewModel.dim {
-            return "\(root) Diminished"
-        } else if viewModel.MM7 {
-            return "\(root) Major 7"
-        } else if viewModel.Mm7 {
-            return "\(root) Dominant 7"
-        } else if viewModel.mm7 {
-            return "\(root) Minor 7"
-        } else if viewModel.hd7 {
-            return "\(root) Half Diminished 7"
-        } else if viewModel.fd7 {
-            return "\(root) Fully Diminished 7"
-        } else if viewModel.mM7 {
-            return "\(root) Minor Major 7"
-        } else if viewModel.sus2 {
-            return "\(root) Sus2"
-        } else if viewModel.sus4 {
-            return "\(root) Sus4"
-        } else if viewModel.itA6 {
-            return "\(root) Italian +6"
-        } else if viewModel.frA6 {
-            return "\(root) French +6"
-        } else if viewModel.gerA6 {
-            return "\(root) German +6"
-        } else if viewModel.ct7 {
-            return "\(root) Common Tone °7"
-        }
-
+        if viewModel.major { return "\(root) Major" }
+        if viewModel.minor { return "\(root) Minor" }
+        if viewModel.aug { return "\(root) Augmented" }
+        if viewModel.dim { return "\(root) Diminished" }
+        if viewModel.MM7 { return "\(root) Major 7" }
+        if viewModel.Mm7 { return "\(root) Dominant 7" }
+        if viewModel.mm7 { return "\(root) Minor 7" }
+        if viewModel.hd7 { return "\(root) Half Diminished 7" }
+        if viewModel.fd7 { return "\(root) Fully Diminished 7" }
+        if viewModel.mM7 { return "\(root) Minor Major 7" }
+        if viewModel.sus2 { return "\(root) Sus2" }
+        if viewModel.sus4 { return "\(root) Sus4" }
+        if viewModel.itA6 { return "\(root) Italian +6" }
+        if viewModel.frA6 { return "\(root) French +6" }
+        if viewModel.gerA6 { return "\(root) German +6" }
+        if viewModel.ct7 { return "\(root) Common Tone °7" }
         return "Chord Notes"
-    }
-}
-
-// MARK: - Chord Quality Button Component
-
-struct ChordQualityButton: View {
-    let label: String
-    let isActive: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: {
-            action()
-            HapticManager.shared.mediumImpact()
-        }) {
-            Text(label)
-                .font(.buttonLabel)
-                .foregroundColor(isActive ? .textOnLight : .textOnLight)
-                .padding(.horizontal, Spacing.contentPadding)
-                .padding(.vertical, Spacing.sm)
-                .background(
-                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                        .fill(isActive ? Color.lightTintCoral : Color.white.opacity(0.5))
-                        .shadow(color: Color.white.opacity(isActive ? 0.5 : 0.3), radius: isActive ? 6 : 4, x: 0, y: isActive ? 3 : 2)
-                )
-                .scaleEffect(isActive ? 1.05 : 1.0)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .animation(AppAnimation.quickSpring, value: isActive)
     }
 }
 
 // MARK: - Note Card Component
 
+/// Chord tone card: large pitch class with quiet interval caption beneath.
 struct NoteCard: View {
     let note: String
+    /// Compact interval from root (e.g. `R`, `M3`, `P5`). Optional for previews.
+    var interval: String? = nil
     @State private var appeared = false
 
     var body: some View {
-        Text(note)
-            .font(.system(size: 36, weight: .bold, design: .monospaced))
-            .foregroundColor(.brandCoral)
-            .lineLimit(1)
-            .minimumScaleFactor(0.4)
-            .frame(maxWidth: .infinity)
-            .frame(height: 80)
-            .padding(.horizontal, Spacing.sm)
-            .background(
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-            )
-            .scaleEffect(appeared ? 1.0 : 0.8)
-            .opacity(appeared ? 1.0 : 0.0)
-            .onAppear {
-                withAnimation(AppAnimation.bouncySpring) {
-                    appeared = true
-                }
+        VStack(spacing: 6) {
+            Text(note)
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(.inkPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.45)
+                .frame(maxWidth: .infinity)
+
+            if let interval, !interval.isEmpty {
+                Text(interval)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundColor(.inkTertiary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .accessibilityLabel(Self.accessibilityName(for: interval))
             }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: interval == nil ? 80 : 92)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium, style: .continuous)
+                .fill(Color.surfaceCard)
+        )
+        .scaleEffect(appeared ? 1.0 : 0.8)
+        .opacity(appeared ? 1.0 : 0.0)
+        .onAppear {
+            withAnimation(AppAnimation.bouncySpring) {
+                appeared = true
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            interval.map { "\(note), \(Self.accessibilityName(for: $0))" } ?? note
+        )
+    }
+
+    private static func accessibilityName(for label: String) -> String {
+        switch label {
+        case "R": return "root"
+        case "M2": return "major second"
+        case "m2": return "minor second"
+        case "M3": return "major third"
+        case "m3": return "minor third"
+        case "P4": return "perfect fourth"
+        case "A4": return "augmented fourth"
+        case "d5": return "diminished fifth"
+        case "P5": return "perfect fifth"
+        case "A5": return "augmented fifth"
+        case "m6": return "minor sixth"
+        case "M6": return "major sixth"
+        case "m7": return "minor seventh"
+        case "M7": return "major seventh"
+        case "d7": return "diminished seventh"
+        case "A2": return "augmented second"
+        default: return label
+        }
     }
 }
 
@@ -359,9 +341,8 @@ struct TriadNotePickerKeyboard: View {
     private let naturalNotes = ["C", "D", "E", "F", "G", "A", "B"]
 
     var body: some View {
-        VStack(spacing: 8) {
-            // Natural notes (C D E F G A B)
-            HStack(spacing: 6) {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
                 ForEach(naturalNotes, id: \.self) { note in
                     TriadNoteButton(label: note, isPressed: pressedButton == note, isSelected: noteText.starts(with: note)) {
                         appendNote(note)
@@ -369,21 +350,21 @@ struct TriadNotePickerKeyboard: View {
                 }
             }
 
-            // Accidentals (# b) and backspace
-            HStack(spacing: 6) {
-                TriadNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: noteText.contains("#"), backgroundColor: Color.white.opacity(0.3)) {
+            HStack(spacing: 8) {
+                TriadNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: noteText.contains("#"), backgroundColor: Color.white.opacity(0.55)) {
                     appendAccidental("#")
                 }
 
-                TriadNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: noteText.contains("b"), backgroundColor: Color.white.opacity(0.3)) {
+                TriadNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: noteText.contains("b"), backgroundColor: Color.white.opacity(0.55)) {
                     appendAccidental("b")
                 }
 
-                Spacer()
+                Spacer(minLength: 12)
 
-                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.pastelRed) {
+                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.pastelRed.opacity(0.85)) {
                     backspace()
                 }
+                .frame(maxWidth: 88)
             }
         }
     }
@@ -405,19 +386,15 @@ struct TriadNotePickerKeyboard: View {
             let hasSharp = noteText.contains("#")
             let hasFlat = noteText.contains("b")
 
-            // If switching between sharps and flats, replace all existing accidentals with one of the new type
-            if (accidental == "#" && hasFlat) {
+            if accidental == "#" && hasFlat {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    // Remove all flats and add one sharp
                     noteText = String(noteText.filter { $0 != "b" }) + "#"
                 }
-            } else if (accidental == "b" && hasSharp) {
+            } else if accidental == "b" && hasSharp {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    // Remove all sharps and add one flat
                     noteText = String(noteText.filter { $0 != "#" }) + "b"
                 }
             } else if noteText.filter({ $0 == "#" || $0 == "b" }).count < 3 {
-                // Same accidental type, just append if under limit
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     noteText += accidental
                 }
@@ -446,27 +423,32 @@ struct TriadNotePickerKeyboard: View {
     }
 }
 
-// Custom Note Button
 struct TriadNoteButton: View {
     let label: String
     let isPressed: Bool
     var isSelected: Bool = false
-    var backgroundColor: Color = Color.white.opacity(0.5)
+    var backgroundColor: Color = Color.white.opacity(0.72)
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(isSelected ? .textOnLight : .textOnLight)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(.textOnLight)
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
+                .frame(minHeight: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(isSelected ? Color.lightTintCoral : backgroundColor)
-                        .shadow(color: Color.black.opacity(isPressed ? 0.3 : 0.15), radius: isPressed ? 2 : 4, x: 0, y: isPressed ? 1 : 2)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(
+                                    isSelected ? Color.brandCoral.opacity(0.7) : Color.black.opacity(0.1),
+                                    lineWidth: isSelected ? 2 : 1
+                                )
+                        )
                 )
-                .scaleEffect(isPressed ? 0.95 : 1.0)
+                .scaleEffect(isPressed ? 0.96 : 1.0)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -475,7 +457,6 @@ struct TriadNoteButton: View {
 struct InputTriadAns_Previews: PreviewProvider {
     static var previews: some View {
         InputTriadAns()
+            .environmentObject(triadBuildViewModel())
     }
 }
-
-

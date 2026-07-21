@@ -10,25 +10,54 @@ import SwiftUI
 
 extension Color {
 
-    // MARK: - Brand Colors (Existing Palette)
+    // MARK: - Brand Colors
+    // Tuned for hierarchy: solid accents hold white text; soft tints for washes.
 
     /// Soft pink - Used for Chord Solver section
     static let brandPink = Color(red: 0.96, green: 0.75, blue: 0.75)
 
-    /// Vibrant coral - Used for Chords/Triads section (lightened for better readability)
-    static let brandCoral = Color(red: 1.0, green: 0.58, blue: 0.58)
+    /// Coral — Chords section accent / result panel (deep enough for white type)
+    static let brandCoral = Color(red: 0.91, green: 0.42, blue: 0.46)
 
-    /// Lavender purple - Used for Scales section
-    static let brandPurple = Color(red: 0.72, green: 0.71, blue: 1.0)
+    /// Purple — Scales section accent (deep enough for white type)
+    static let brandPurple = Color(red: 0.52, green: 0.50, blue: 0.90)
 
-    /// Soft aqua - Used for Intervals section
-    static let brandAqua = Color(red: 0.62, green: 0.85, blue: 0.87)
+    /// Aqua — Intervals section accent (deep enough for white type)
+    static let brandAqua = Color(red: 0.22, green: 0.58, blue: 0.64)
 
-    /// Warm beige - Used for landing page
-    static let brandBeige = Color(red: 0.94, green: 0.89, blue: 0.84)
+    /// Soft pastels for landing cards (kept light; labels use dark ink)
+    static let brandCoralSoft = Color(red: 1.0, green: 0.62, blue: 0.62)
+    static let brandPurpleSoft = Color(red: 0.78, green: 0.76, blue: 1.0)
+    static let brandAquaSoft = Color(red: 0.62, green: 0.85, blue: 0.87)
 
-    /// Darker beige - Used for tab bar background to contrast with main beige
-    static let darkBeige = Color(red: 0.88, green: 0.82, blue: 0.76)
+    /// Warm beige - page background
+    static let brandBeige = Color(red: 0.96, green: 0.93, blue: 0.89)
+
+    /// Darker beige - contrast strip if needed
+    static let darkBeige = Color(red: 0.90, green: 0.86, blue: 0.80)
+
+    // MARK: - Surfaces & Ink (shared UI chrome)
+
+    /// Elevated card / control surface on beige
+    static let surfaceCard = Color.white
+
+    /// Subtle hairline border on cards
+    static let borderSubtle = Color.black.opacity(0.08)
+
+    /// Stronger border for focused controls
+    static let borderStrong = Color.black.opacity(0.14)
+
+    /// Primary ink on light surfaces (warm near-black)
+    static let inkPrimary = Color(red: 0.16, green: 0.12, blue: 0.11)
+
+    /// Secondary captions / chevrons on light surfaces
+    static let inkSecondary = Color.black.opacity(0.42)
+
+    /// Tertiary / placeholder
+    static let inkTertiary = Color.black.opacity(0.32)
+
+    /// Text/icons on solid brand fills
+    static let inkOnAccent = Color.white
 
     // MARK: - Semantic Colors
 
@@ -125,11 +154,11 @@ extension Color {
     /// Tertiary text color (very subtle) - Improved contrast
     static let textTertiary = Color.white.opacity(0.85)
 
-    /// Text on light backgrounds - High contrast black
-    static let textOnLight = Color.black.opacity(0.9)
+    /// Text on light backgrounds - High contrast ink
+    static let textOnLight = inkPrimary
 
     /// Text on very light backgrounds (like beige)
-    static let textOnBeige = Color.black.opacity(0.85)
+    static let textOnBeige = inkPrimary
 
     // MARK: - Feedback Colors
 

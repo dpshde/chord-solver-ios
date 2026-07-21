@@ -8,212 +8,221 @@
 
 import SwiftUI
 
+/// Which interval note field is active for the shared keyboard.
+enum IntervalNoteFocus: Equatable {
+    case lower
+    case upper
+}
+
 struct IntervalView: View {
 
     @Environment(\.colorScheme) var colorScheme
-    @State private var bottomNote: String = ""
-    @State private var topNote: String = ""
-    @State private var showBottomKeyboard = false
-    @State private var showTopKeyboard = false
-    @State private var intervalResult: String = ""
+    @EnvironmentObject private var session: IntervalSessionState
+    @State private var focus: IntervalNoteFocus? = nil
+    @State private var calcWorkItem: DispatchWorkItem?
 
     var body: some View {
-        VStack(spacing: 0) {
-
-            // Input section
-            VStack(spacing: Spacing.xl) {
-                // Bottom Note Input
-                VStack(spacing: Spacing.sm) {
-                    HStack {
-//                        Image(systemName: "arrow.down.circle.fill")
-//                            .font(.title3)
-//                            .foregroundColor(.textOnLight)
-                        Text("Bottom Note")
-                            .font(.headline)
-                            .foregroundColor(.textOnLight)
-                        Spacer()
-                    }
-
-                    Button(action: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            showBottomKeyboard.toggle()
-                            showTopKeyboard = false
-                        }
-                        HapticManager.shared.lightImpact()
-                    }) {
-                        HStack {
-                            Text(bottomNote.isEmpty ? "Tap to enter" : bottomNote)
-                                .foregroundColor(bottomNote.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
-                                .font(.noteName)
-
-                            Spacer()
-
-                            Image(systemName: showBottomKeyboard ? "keyboard.chevron.compact.down" : "keyboard")
-                                .foregroundColor(.textOnLight)
-                        }
-                        .padding(Spacing.contentPadding)
-                        .background(
-                            RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                .fill(Color.white.opacity(0.5))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                        .stroke(Color.black.opacity(0.4), lineWidth: 2)
-                                )
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    // Custom keyboard for bottom note
-                    if showBottomKeyboard {
-                        IntervalNoteKeyboard(noteText: $bottomNote)
-                            .transition(.slideFromBottom)
-                    }
+        ScrollView {
+            VStack(spacing: 0) {
+                if session.bottomNote.isEmpty && session.topNote.isEmpty {
+                    InputCoachingLine(text: "Lower note → higher note")
                 }
 
-                // Visual separator
-                HStack {
-                    Rectangle()
-                        .fill(Color.black.opacity(0.2))
-                        .frame(height: 2)
+                VStack(spacing: Spacing.lg) {
+                    // Lower note
+                    intervalField(
+                        title: "Lower note",
+                        note: session.bottomNote,
+                        isFocused: focus == .lower
+                    ) {
+                        withAnimation(AppAnimation.quickSpring) {
+                            focus = focus == .lower ? nil : .lower
+                        }
+                        HapticManager.shared.lightImpact()
+                    } onClear: {
+                        withAnimation(AppAnimation.quickSpring) {
+                            session.bottomNote = ""
+                            session.intervalResult = ""
+                            if focus == .lower { focus = nil }
+                        }
+                        HapticManager.shared.lightImpact()
+                    }
 
-                    Image(systemName: "arrow.down")
-                        .font(.title2)
-                        .foregroundColor(.textOnLight)
-                        .padding(.horizontal, Spacing.sm)
+                    if focus == .lower {
+                        IntervalNoteKeyboard(noteText: $session.bottomNote)
+                            .transition(.slideFromBottom)
+                    }
 
-                    Rectangle()
-                        .fill(Color.black.opacity(0.2))
-                        .frame(height: 2)
+                    // Between fields: result or arrow
+                    if !session.intervalResult.isEmpty {
+                        AnswerResultPanel(title: getIntervalLabel(), accent: .brandAqua) {
+                            Text(session.intervalResult)
+                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.5)
+                        }
+                        // Panel adds its own horizontal padding; cancel parent inset.
+                        .padding(.horizontal, -Spacing.screenPadding)
+                    } else {
+                        HStack {
+                            Rectangle()
+                                .fill(Color.black.opacity(0.15))
+                                .frame(height: 2)
+                            Image(systemName: "arrow.down")
+                                .font(.title3)
+                                .foregroundColor(.textOnLight.opacity(0.6))
+                                .padding(.horizontal, Spacing.sm)
+                            Rectangle()
+                                .fill(Color.black.opacity(0.15))
+                                .frame(height: 2)
+                        }
+                    }
+
+                    // Higher note
+                    intervalField(
+                        title: "Higher note",
+                        note: session.topNote,
+                        isFocused: focus == .upper
+                    ) {
+                        withAnimation(AppAnimation.quickSpring) {
+                            focus = focus == .upper ? nil : .upper
+                        }
+                        HapticManager.shared.lightImpact()
+                    } onClear: {
+                        withAnimation(AppAnimation.quickSpring) {
+                            session.topNote = ""
+                            session.intervalResult = ""
+                            if focus == .upper { focus = nil }
+                        }
+                        HapticManager.shared.lightImpact()
+                    }
+
+                    if focus == .upper {
+                        IntervalNoteKeyboard(noteText: $session.topNote)
+                            .transition(.slideFromBottom)
+                    }
                 }
                 .padding(.horizontal, Spacing.screenPadding)
+                .padding(.top, Spacing.md)
 
-                // Top Note Input
-                VStack(spacing: Spacing.sm) {
-                    HStack {
-//                        Image(systemName: "arrow.up.circle.fill")
-//                            .font(.title3)
-//                            .foregroundColor(.textOnLight)
-                        Text("Top Note")
-                            .font(.headline)
-                            .foregroundColor(.textOnLight)
-                        Spacer()
-                    }
-
-                    Button(action: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            showTopKeyboard.toggle()
-                            showBottomKeyboard = false
-                        }
-                        HapticManager.shared.lightImpact()
-                    }) {
-                        HStack {
-                            Text(topNote.isEmpty ? "Tap to enter" : topNote)
-                                .foregroundColor(topNote.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
-                                .font(.noteName)
-
-                            Spacer()
-
-                            Image(systemName: showTopKeyboard ? "keyboard.chevron.compact.down" : "keyboard")
-                                .foregroundColor(.textOnLight)
-                        }
-                        .padding(Spacing.contentPadding)
-                        .background(
-                            RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                .fill(Color.white.opacity(0.5))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                        .stroke(Color.black.opacity(0.4), lineWidth: 2)
-                                )
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-
-                    // Custom keyboard for top note
-                    if showTopKeyboard {
-                        IntervalNoteKeyboard(noteText: $topNote)
-                            .transition(.slideFromBottom)
-                    }
-                }
-            }
-            .padding(.horizontal, Spacing.screenPadding)
-            .padding(.top, Spacing.md)
-
-            // Result at bottom (like chord/scale screens)
-            if !intervalResult.isEmpty {
-                Spacer()
-
-                VStack(spacing: Spacing.md) {
-                    Text(getIntervalLabel())
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-
-                    Text(intervalResult)
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.5)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.vertical, Spacing.xl)
-                .background(
-                    RoundedRectangle(cornerRadius: 0)
-                        .fill(Color.brandAqua)
-                        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
-                )
-                .padding(.bottom, Spacing.xxl)
-                .transition(.scaleAndFade)
-
-                Spacer()
-            } else {
-                Spacer()
+                Spacer(minLength: Spacing.xxxl)
             }
         }
-        .onChange(of: bottomNote) { _ in
-            calculateIntervalIfReady()
+        .onChange(of: session.bottomNote) { old, new in
+            handleNoteChange(old: old, new: new, justFinished: .lower)
         }
-        .onChange(of: topNote) { _ in
-            calculateIntervalIfReady()
+        .onChange(of: session.topNote) { old, new in
+            handleNoteChange(old: old, new: new, justFinished: .upper)
         }
     }
 
-    private func calculateIntervalIfReady() {
-        // Auto-calculate when both notes are entered
-        if !bottomNote.isEmpty && !topNote.isEmpty {
-            // Small delay to allow for smooth typing
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                if !bottomNote.isEmpty && !topNote.isEmpty {
-                    calculateInterval()
-                    // Close keyboards when result is shown
-                    withAnimation(AppAnimation.quickSpring) {
-                        showBottomKeyboard = false
-                        showTopKeyboard = false
+    @ViewBuilder
+    private func intervalField(
+        title: String,
+        note: String,
+        isFocused: Bool,
+        onTap: @escaping () -> Void,
+        onClear: @escaping () -> Void
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(.textOnLight)
+
+            HStack(spacing: Spacing.sm) {
+                Button(action: onTap) {
+                    HStack {
+                        Text(note.isEmpty ? "Tap to enter" : note)
+                            .foregroundColor(note.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
+                            .font(.noteName)
+
+                        Spacer()
+
+                        Image(systemName: isFocused ? "keyboard.chevron.compact.down" : "keyboard")
+                            .foregroundColor(.textOnLight)
                     }
-                    HapticManager.shared.success()
+                    .padding(Spacing.contentPadding)
+                    .background(
+                        RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
+                            .fill(Color.white.opacity(0.5))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
+                                    .stroke(
+                                        isFocused ? Color.brandAqua.opacity(0.8) : Color.black.opacity(0.4),
+                                        lineWidth: isFocused ? 2.5 : 2
+                                    )
+                            )
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                if !note.isEmpty {
+                    Button(action: onClear) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.textOnLight.opacity(0.45))
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
+        }
+    }
+
+    private func handleNoteChange(old: String, new: String, justFinished: IntervalNoteFocus) {
+        // After setting a natural note (or completing lower), advance focus once.
+        if old.isEmpty && !new.isEmpty && justFinished == .lower {
+            // Allow accidentals briefly, then advance to upper.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                guard !session.bottomNote.isEmpty, focus == .lower else { return }
+                withAnimation(AppAnimation.quickSpring) {
+                    focus = .upper
+                }
+            }
+        } else if !new.isEmpty && justFinished == .upper {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                guard !session.topNote.isEmpty, focus == .upper else { return }
+                withAnimation(AppAnimation.quickSpring) {
+                    focus = nil
+                }
+            }
+        }
+
+        scheduleCalculate()
+    }
+
+    private func scheduleCalculate() {
+        calcWorkItem?.cancel()
+        let work = DispatchWorkItem {
+            calculateIntervalIfReady()
+        }
+        calcWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12, execute: work)
+    }
+
+    private func calculateIntervalIfReady() {
+        if !session.bottomNote.isEmpty && !session.topNote.isEmpty {
+            calculateInterval()
+            HapticManager.shared.success()
         } else {
-            // Clear result if either note is removed
-            intervalResult = ""
+            session.intervalResult = ""
         }
     }
 
     private func calculateInterval() {
-        // Calculate interval between bottom and top notes
-        let interval = Interval(bottom: bottomNote, top: topNote)
+        let interval = Interval(bottom: session.bottomNote, top: session.topNote)
         let result = interval.dToName()
-
         withAnimation(AppAnimation.bouncySpring) {
-            intervalResult = result.isEmpty ? "Invalid interval" : result
+            session.intervalResult = result.isEmpty ? "Invalid interval" : result
         }
     }
 
     private func getIntervalLabel() -> String {
-        if bottomNote.isEmpty || topNote.isEmpty {
+        if session.bottomNote.isEmpty || session.topNote.isEmpty {
             return "Interval"
         }
-        return "\(bottomNote) → \(topNote)"
+        return "\(session.bottomNote) → \(session.topNote)"
     }
 }
 
@@ -226,9 +235,8 @@ struct IntervalNoteKeyboard: View {
     private let naturalNotes = ["C", "D", "E", "F", "G", "A", "B"]
 
     var body: some View {
-        VStack(spacing: 8) {
-            // Natural notes
-            HStack(spacing: 6) {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
                 ForEach(naturalNotes, id: \.self) { note in
                     IntervalNoteButton(label: note, isPressed: pressedButton == note, isSelected: noteText.starts(with: note)) {
                         appendNote(note)
@@ -236,21 +244,21 @@ struct IntervalNoteKeyboard: View {
                 }
             }
 
-            // Accidentals and backspace
-            HStack(spacing: 6) {
-                IntervalNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: noteText.contains("#"), backgroundColor: Color.white.opacity(0.3)) {
+            HStack(spacing: 8) {
+                IntervalNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: noteText.contains("#"), backgroundColor: Color.white.opacity(0.55)) {
                     appendAccidental("#")
                 }
 
-                IntervalNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: noteText.contains("b"), backgroundColor: Color.white.opacity(0.3)) {
+                IntervalNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: noteText.contains("b"), backgroundColor: Color.white.opacity(0.55)) {
                     appendAccidental("b")
                 }
 
-                Spacer()
+                Spacer(minLength: 12)
 
-                IntervalNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.brandAqua.opacity(0.3)) {
+                IntervalNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.brandAqua.opacity(0.35)) {
                     backspace()
                 }
+                .frame(maxWidth: 88)
             }
         }
     }
@@ -271,19 +279,15 @@ struct IntervalNoteKeyboard: View {
             let hasSharp = noteText.contains("#")
             let hasFlat = noteText.contains("b")
 
-            // If switching between sharps and flats, replace all existing accidentals with one of the new type
-            if (accidental == "#" && hasFlat) {
+            if accidental == "#" && hasFlat {
                 withAnimation(AppAnimation.quickSpring) {
-                    // Remove all flats and add one sharp
                     noteText = String(noteText.filter { $0 != "b" }) + "#"
                 }
-            } else if (accidental == "b" && hasSharp) {
+            } else if accidental == "b" && hasSharp {
                 withAnimation(AppAnimation.quickSpring) {
-                    // Remove all sharps and add one flat
                     noteText = String(noteText.filter { $0 != "#" }) + "b"
                 }
             } else if noteText.filter({ $0 == "#" || $0 == "b" }).count < 3 {
-                // Same accidental type, just append if under limit
                 withAnimation(AppAnimation.quickSpring) {
                     noteText += accidental
                 }
@@ -310,12 +314,11 @@ struct IntervalNoteKeyboard: View {
     }
 }
 
-// Note: IntervalNoteButton is defined in InputAnsView.swift and reused here
-
 struct IntervalView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             IntervalView()
+                .environmentObject(IntervalSessionState())
                 .preferredColorScheme(.light)
         }
     }

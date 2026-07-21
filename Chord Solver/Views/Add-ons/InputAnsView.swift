@@ -246,27 +246,28 @@ struct IntervalNoteButton: View {
     let label: String
     let isPressed: Bool
     var isSelected: Bool = false
-    var backgroundColor: Color = Color.white.opacity(0.5)
+    var backgroundColor: Color = Color.white.opacity(0.72)
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.system(size: 24, weight: .bold))
-                .foregroundColor(isSelected ? .textOnLight : .textOnLight)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(.textOnLight)
                 .frame(maxWidth: .infinity)
-                .frame(height: 56)
+                .frame(minHeight: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(isSelected ? Color.lightTintAqua : backgroundColor)
-                        .shadow(
-                            color: Color.black.opacity(isPressed ? 0.3 : 0.15),
-                            radius: isPressed ? 2 : 4,
-                            x: 0,
-                            y: isPressed ? 1 : 2
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .strokeBorder(
+                                    isSelected ? Color.brandAqua.opacity(0.7) : Color.black.opacity(0.1),
+                                    lineWidth: isSelected ? 2 : 1
+                                )
                         )
                 )
-                .scaleEffect(isPressed ? 0.95 : 1.0)
+                .scaleEffect(isPressed ? 0.96 : 1.0)
         }
         .buttonStyle(PlainButtonStyle())
     }
