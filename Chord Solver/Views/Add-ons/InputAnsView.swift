@@ -22,14 +22,14 @@ struct InputView: View {
             // Bottom note input
             Button(action: {
                 showingTopKeyboard = false
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.smoothSpring) {
                     showingBottomKeyboard.toggle()
                 }
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
             }) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10.0)
+                    Spacing.shapeSmall
                         .foregroundColor(.white)
                         .frame(maxWidth: 350, maxHeight: 50)
 
@@ -50,14 +50,14 @@ struct InputView: View {
             // Top note input
             Button(action: {
                 showingBottomKeyboard = false
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.smoothSpring) {
                     showingTopKeyboard.toggle()
                 }
                 let generator = UIImpactFeedbackGenerator(style: .light)
                 generator.impactOccurred()
             }) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10.0)
+                    Spacing.shapeSmall
                         .foregroundColor(.white)
                         .frame(maxWidth: 350, maxHeight: 50)
 
@@ -104,33 +104,16 @@ struct IntervalNotePickerKeyboard: View {
     var body: some View {
         VStack(spacing: 12) {
 
-            // Display current input
-            HStack {
-                Text(noteText.isEmpty ? "Tap notes below" : noteText)
-                    .font(.system(size: 24, weight: .semibold, design: .monospaced))
-                    .foregroundColor(noteText.isEmpty ? .white.opacity(0.5) : .white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Clear button
-                if !noteText.isEmpty {
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            noteText = ""
-                        }
-                        let generator = UIImpactFeedbackGenerator(style: .light)
-                        generator.impactOccurred()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                }
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.1))
-            )
+            // Display current input (use ⌫ on the pad to edit)
+            Text(noteText.isEmpty ? "Tap notes below" : noteText)
+                .font(.system(size: 24, weight: .semibold, design: .monospaced))
+                .foregroundColor(noteText.isEmpty ? .white.opacity(0.5) : .white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(
+                    Spacing.shapeSmall
+                        .fill(Color.white.opacity(0.1))
+                )
 
             // Natural notes (C D E F G A B)
             HStack(spacing: 8) {
@@ -178,7 +161,7 @@ struct IntervalNotePickerKeyboard: View {
     }
 
     private func appendNote(_ note: String) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+        withAnimation(AppAnimation.quickSpring) {
             noteText = note
         }
 
@@ -198,18 +181,18 @@ struct IntervalNotePickerKeyboard: View {
 
             // If switching between sharps and flats, replace all existing accidentals with one of the new type
             if (accidental == "#" && hasFlat) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     // Remove all flats and add one sharp
                     noteText = String(noteText.filter { $0 != "b" }) + "#"
                 }
             } else if (accidental == "b" && hasSharp) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     // Remove all sharps and add one flat
                     noteText = String(noteText.filter { $0 != "#" }) + "b"
                 }
             } else if noteText.filter({ $0 == "#" || $0 == "b" }).count < 3 {
                 // Same accidental type, just append if under limit
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     noteText += accidental
                 }
             }
@@ -226,7 +209,7 @@ struct IntervalNotePickerKeyboard: View {
 
     private func backspace() {
         if !noteText.isEmpty {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            withAnimation(AppAnimation.quickSpring) {
                 noteText.removeLast()
             }
         }
@@ -257,10 +240,10 @@ struct IntervalNoteButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    Spacing.shapeSmall
                         .fill(isSelected ? Color.lightTintAqua : backgroundColor)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            Spacing.shapeSmall
                                 .strokeBorder(
                                     isSelected ? Color.brandAqua.opacity(0.7) : Color.black.opacity(0.1),
                                     lineWidth: isSelected ? 2 : 1

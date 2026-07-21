@@ -4,7 +4,7 @@
 //
 //  Created by Dylan Shade on 10/8/25.
 //  Tab-based navigation — system tab bar uses Liquid Glass on supported OS.
-//  Section view models live here so root/selection state survives tab switches.
+//  App root: sections switch via tabs only (no landing / home button).
 //
 
 import SwiftUI
@@ -12,10 +12,12 @@ import SwiftUI
 // MARK: - Section routing (testable, separate from chrome styling)
 
 /// Primary switchable sections in the main tab chrome.
+/// Ask maps free text onto Chords / Scales / Vivace state.
 enum MainSectionTab: Int, CaseIterable, Hashable, Identifiable {
     case chords = 0
     case scales = 1
-    case intervals = 2
+    case vivace = 2
+    case ask = 3
 
     var id: Int { rawValue }
 
@@ -23,7 +25,8 @@ enum MainSectionTab: Int, CaseIterable, Hashable, Identifiable {
         switch self {
         case .chords: return "Chords"
         case .scales: return "Scales"
-        case .intervals: return "Intervals"
+        case .vivace: return "Vivace"
+        case .ask: return "Ask"
         }
     }
 
@@ -31,7 +34,8 @@ enum MainSectionTab: Int, CaseIterable, Hashable, Identifiable {
         switch self {
         case .chords: return "music.note.list"
         case .scales: return "music.quarternote.3"
-        case .intervals: return "arrow.left.and.right"
+        case .vivace: return "function"
+        case .ask: return "text.magnifyingglass"
         }
     }
 
@@ -39,7 +43,8 @@ enum MainSectionTab: Int, CaseIterable, Hashable, Identifiable {
         switch self {
         case .chords: return .brandCoral
         case .scales: return .brandPurple
-        case .intervals: return .brandAqua
+        case .vivace: return .brandVivace
+        case .ask: return .brandAqua
         }
     }
 
@@ -48,20 +53,19 @@ enum MainSectionTab: Int, CaseIterable, Hashable, Identifiable {
         MainSectionTab(rawValue: initialTab) ?? .chords
     }
 
-    /// Landing card titles that open this tab (same labels as section switcher).
+    /// Section titles (same labels as the tab bar).
     static var landingSectionTitles: [String] {
         allCases.map(\.title)
     }
 
-    /// Resolves a landing card title to a tab; unknown titles return nil.
+    /// Resolves a section title to a tab; unknown titles return nil.
     static func tab(forLandingTitle title: String) -> MainSectionTab? {
         allCases.first { $0.title == title }
     }
 }
 
-// MARK: - Interval session (persists across tab switches)
+// MARK: - Interval session (legacy support for IntervalView if linked elsewhere)
 
-/// Interval note pair held at tab-shell level so values survive leaving the Intervals tab.
 final class IntervalSessionState: ObservableObject {
     @Published var bottomNote: String = ""
     @Published var topNote: String = ""
@@ -72,35 +76,26 @@ final class IntervalSessionState: ObservableObject {
 
 struct MainTabView: View {
 
+    @AppStorage("chordSolver.lastSectionRaw") private var lastSectionRaw: Int = 0
     @State private var selectedTab: MainSectionTab
 
-    /// Optional return to landing (single entry path from ContentView).
-    var onRequestHome: (() -> Void)? = nil
-
-    /// Owned here so chord root / quality survive switching away from Chords.
     @StateObject private var triadVM = triadBuildViewModel()
-    /// Owned here so scale root / mode survive switching away from Scales.
     @StateObject private var scalesVM = scalesViewModel()
-    /// Owned here so interval notes survive switching away from Intervals.
-    @StateObject private var intervalSession = IntervalSessionState()
+    @StateObject private var vivaceSession = VivaceSessionState()
 
-    init(initialTab: Int = 0, onRequestHome: (() -> Void)? = nil) {
-        _selectedTab = State(initialValue: MainSectionTab.resolving(initialTab: initialTab))
-        self.onRequestHome = onRequestHome
+    init(initialTab: Int? = nil) {
+        let resolved = MainSectionTab.resolving(initialTab: initialTab ?? 0)
+        _selectedTab = State(initialValue: resolved)
     }
 
     var body: some View {
-        // Native TabView so the system tab bar is the primary nav chrome.
-        // On iOS 26+ the system tab bar uses Liquid Glass automatically.
-        // View models stay on this shell so tab content can be recreated without
-        // clearing the musical root / section selections.
         TabView(selection: $selectedTab) {
             Tab(
                 MainSectionTab.chords.title,
                 systemImage: MainSectionTab.chords.systemImage,
                 value: MainSectionTab.chords
             ) {
-                ChordIdentifierContainerView(onRequestHome: onRequestHome)
+                ChordIdentifierContainerView()
             }
 
             Tab(
@@ -108,22 +103,35 @@ struct MainTabView: View {
                 systemImage: MainSectionTab.scales.systemImage,
                 value: MainSectionTab.scales
             ) {
-                ScalesContainerView(onRequestHome: onRequestHome)
+                ScalesContainerView()
             }
 
             Tab(
-                MainSectionTab.intervals.title,
-                systemImage: MainSectionTab.intervals.systemImage,
-                value: MainSectionTab.intervals
+                MainSectionTab.vivace.title,
+                systemImage: MainSectionTab.vivace.systemImage,
+                value: MainSectionTab.vivace
             ) {
-                IntervalsContainerView(onRequestHome: onRequestHome)
+                VivaceContainerView()
+            }
+
+            Tab(
+                MainSectionTab.ask.title,
+                systemImage: MainSectionTab.ask.systemImage,
+                value: MainSectionTab.ask
+            ) {
+                MusicQueryContainerView(selectedTab: $selectedTab)
             }
         }
         .environmentObject(triadVM)
         .environmentObject(scalesVM)
-        .environmentObject(intervalSession)
+        .environmentObject(vivaceSession)
         .tint(selectedTab.tintColor)
-        .onChange(of: selectedTab) { _, _ in
+        .onAppear {
+            // Restore last-used tab on cold launch.
+            selectedTab = MainSectionTab.resolving(initialTab: lastSectionRaw)
+        }
+        .onChange(of: selectedTab) { _, newTab in
+            lastSectionRaw = newTab.rawValue
             HapticManager.shared.selectionChanged()
         }
     }
@@ -133,18 +141,13 @@ struct MainTabView: View {
 
 struct ChordIdentifierContainerView: View {
     @EnvironmentObject var viewModel: triadBuildViewModel
-    var onRequestHome: (() -> Void)? = nil
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.brandBeige
                     .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    sectionHomeBar(tint: .brandCoral, onRequestHome: onRequestHome)
-                    InputTriadAns()
-                }
+                InputTriadAns()
             }
             .toolbar(.hidden, for: .navigationBar)
         }
@@ -154,18 +157,13 @@ struct ChordIdentifierContainerView: View {
 
 struct ScalesContainerView: View {
     @EnvironmentObject var viewModel: scalesViewModel
-    var onRequestHome: (() -> Void)? = nil
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.brandBeige
                     .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    sectionHomeBar(tint: .brandPurple, onRequestHome: onRequestHome)
-                    ScalesView()
-                }
+                ScalesView()
             }
             .toolbar(.hidden, for: .navigationBar)
         }
@@ -173,59 +171,34 @@ struct ScalesContainerView: View {
     }
 }
 
-struct IntervalsContainerView: View {
-    @EnvironmentObject var intervalSession: IntervalSessionState
-    var onRequestHome: (() -> Void)? = nil
+struct VivaceContainerView: View {
+    @EnvironmentObject var vivaceSession: VivaceSessionState
 
     var body: some View {
         NavigationStack {
             ZStack {
                 Color.brandBeige
                     .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    sectionHomeBar(tint: .brandAqua, onRequestHome: onRequestHome)
-                    IntervalView()
-                }
+                VivaceTheoryView()
             }
             .toolbar(.hidden, for: .navigationBar)
         }
-        .environmentObject(intervalSession)
+        .environmentObject(vivaceSession)
     }
 }
 
-/// Subtle home control so landing is only for first entry, not a second nav system.
-@ViewBuilder
-private func sectionHomeBar(tint: Color, onRequestHome: (() -> Void)?) -> some View {
-    if let onRequestHome {
-        HStack {
-            Button {
-                HapticManager.shared.navigate()
-                onRequestHome()
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "house.fill")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text("Home")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                }
-                .foregroundColor(.textOnLight.opacity(0.7))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    Capsule()
-                        .fill(Color.white.opacity(0.5))
-                        .overlay(
-                            Capsule()
-                                .stroke(tint.opacity(0.35), lineWidth: 1)
-                        )
-                )
+struct MusicQueryContainerView: View {
+    @Binding var selectedTab: MainSectionTab
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.brandBeige
+                    .ignoresSafeArea()
+                MusicQueryView(selectedTab: $selectedTab)
             }
-            .buttonStyle(PlainButtonStyle())
-            Spacer()
+            .toolbar(.hidden, for: .navigationBar)
         }
-        .padding(.horizontal, Spacing.screenPadding)
-        .padding(.top, Spacing.sm)
     }
 }
 

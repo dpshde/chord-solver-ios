@@ -49,7 +49,7 @@ struct FeatureButton: View {
             }
         }) {
             ZStack {
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusChip)
+                Spacing.shapeChip
                     .foregroundColor(isSelected ? activeColor : inactiveColor)
                     .shadow(
                         color: isSelected ? Color.black.opacity(0.2) : Color.clear,

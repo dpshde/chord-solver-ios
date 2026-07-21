@@ -27,7 +27,7 @@ struct qualityButton: View {
             generator.impactOccurred()
 
             // Execute action with animation
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            withAnimation(AppAnimation.quickSpring) {
                 switch name {
                     case "Major":
                         active.toggle()
@@ -106,7 +106,7 @@ struct qualityButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isPressed ? 0.95 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .animation(AppAnimation.quickSpring, value: isPressed)
         .onLongPressGesture(
             minimumDuration: .infinity,
             pressing: { pressing in

@@ -20,7 +20,7 @@ struct InputChordSolveView: View {
         ZStack {
             HStack {
                 ZStack {
-                    RoundedRectangle.init(cornerRadius: 10.0)
+                    Spacing.shapeSmall
                         .frame(minWidth: 0,maxWidth: .infinity, minHeight: 0, maxHeight: 50)
                         .foregroundColor(.white)
                     TextField("Enter a note:", text: $viewModel.input)

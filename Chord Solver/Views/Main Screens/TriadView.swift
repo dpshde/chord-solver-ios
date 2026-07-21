@@ -27,7 +27,7 @@ struct TriadView: View {
                     
                     VStack {
                         ZStack(alignment: .topLeading) {
-                            RoundedRectangle(cornerRadius: 15)
+                            Spacing.shapeMedium
                                 .frame(maxWidth: .infinity, maxHeight: 75)
                                 .foregroundColor(Color(#colorLiteral(red: 1, green: 0.4431372549, blue: 0.4431372549, alpha: 1)))
 
@@ -40,7 +40,7 @@ struct TriadView: View {
 
                         }.padding(-10)
                         ZStack(alignment: .topLeading) {
-                            RoundedRectangle(cornerRadius: 15)
+                            Spacing.shapeMedium
                                 .edgesIgnoringSafeArea(.horizontal)
                                 .frame(maxWidth: .infinity, maxHeight: 75)
                                 .foregroundColor(Color(#colorLiteral(red: 0.7215686275, green: 0.7098039216, blue: 1, alpha: 1)))
@@ -56,7 +56,7 @@ struct TriadView: View {
                         }.padding(-10)
                         /*
                         ZStack(alignment: .topLeading) {
-                            Rectangle(cornerRadius: 15)
+                            Rectangle(cornerRadius: Spacing.cornerRadiusMedium)
                                 .edgesIgnoringSafeArea(.horizontal)
                                 .frame(maxWidth: .infinity, maxHeight: 75)
                                 .foregroundColor(Color(#colorLiteral(red: 0.9607843137, green: 0.7529411765, blue: 0.7529411765, alpha: 1)))

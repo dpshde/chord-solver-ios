@@ -43,7 +43,7 @@ struct NavigationCard<Destination: View>: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium)
+            Spacing.shapeMedium
                 .frame(
                     maxWidth: .infinity,
                     maxHeight: Spacing.navigationCardHeight

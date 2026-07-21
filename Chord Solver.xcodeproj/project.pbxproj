@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA47DC032E96CA00009B1967 /* VivaceTheoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DC022E96CA00009B1967 /* VivaceTheoryView.swift */; };
+		AA47DC012E96CA00009B1967 /* VivaceChordIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DC002E96CA00009B1967 /* VivaceChordIdentifier.swift */; };
+		AA47DC112E96D100009B1967 /* MusicQueryParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DC102E96D100009B1967 /* MusicQueryParser.swift */; };
+		AA47DC132E96D100009B1967 /* MusicQueryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DC122E96D100009B1967 /* MusicQueryView.swift */; };
 		AA47DBF12E96C800009B1967 /* OptionChipPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DBF02E96C800009B1967 /* OptionChipPicker.swift */; };
 		AA47DBA02E96C754009B1967 /* Typography.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DB9E2E96C754009B1967 /* Typography.swift */; };
 		AA47DBA12E96C754009B1967 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DB9C2E96C754009B1967 /* Colors.swift */; };
@@ -82,6 +86,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		AA47DC022E96CA00009B1967 /* VivaceTheoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VivaceTheoryView.swift; sourceTree = "<group>"; };
+		AA47DC002E96CA00009B1967 /* VivaceChordIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VivaceChordIdentifier.swift; sourceTree = "<group>"; };
+		AA47DC102E96D100009B1967 /* MusicQueryParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicQueryParser.swift; sourceTree = "<group>"; };
+		AA47DC122E96D100009B1967 /* MusicQueryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicQueryView.swift; sourceTree = "<group>"; };
 		AA47DBF02E96C800009B1967 /* OptionChipPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionChipPicker.swift; sourceTree = "<group>"; };
 		AA47DB9B2E96C754009B1967 /* Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Animations.swift; sourceTree = "<group>"; };
 		AA47DB9C2E96C754009B1967 /* Colors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Colors.swift; sourceTree = "<group>"; };
@@ -204,6 +212,8 @@
 				AA47DBB82E96C776009B1967 /* ContentView.swift */,
 				AA47DBB92E96C776009B1967 /* IntervalView.swift */,
 				AA47DBBA2E96C776009B1967 /* MainTabView.swift */,
+				AA47DC022E96CA00009B1967 /* VivaceTheoryView.swift */,
+				AA47DC122E96D100009B1967 /* MusicQueryView.swift */,
 				AA47DBBB2E96C776009B1967 /* ScalesView.swift */,
 				AA47DBBC2E96C776009B1967 /* TriadView.swift */,
 			);
@@ -297,6 +307,8 @@
 			isa = PBXGroup;
 			children = (
 				D283F46E262CD0260069AF23 /* intervalDistances.swift */,
+				AA47DC002E96CA00009B1967 /* VivaceChordIdentifier.swift */,
+				AA47DC102E96D100009B1967 /* MusicQueryParser.swift */,
 				D283F475262CD0450069AF23 /* scalesBuildModel.swift */,
 				D283F47C262CD05F0069AF23 /* triadBuildModel.swift */,
 				D283F483262CD06F0069AF23 /* triadInts.swift */,
@@ -461,6 +473,10 @@
 				AA47DBA92E96C761009B1967 /* EnhancedInputField.swift in Sources */,
 				AA47DBAA2E96C761009B1967 /* NavigationCard.swift in Sources */,
 				AA47DBF12E96C800009B1967 /* OptionChipPicker.swift in Sources */,
+				AA47DC032E96CA00009B1967 /* VivaceTheoryView.swift in Sources */,
+				AA47DC012E96CA00009B1967 /* VivaceChordIdentifier.swift in Sources */,
+				AA47DC112E96D100009B1967 /* MusicQueryParser.swift in Sources */,
+				AA47DC132E96D100009B1967 /* MusicQueryView.swift in Sources */,
 				D283F46F262CD0260069AF23 /* intervalDistances.swift in Sources */,
 				D283F476262CD0450069AF23 /* scalesBuildModel.swift in Sources */,
 				D283F3C2262CCDF60069AF23 /* Chord_SolverApp.swift in Sources */,
@@ -574,7 +590,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -631,7 +647,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;

@@ -14,9 +14,9 @@ struct InputTriadAns: View {
     @EnvironmentObject var viewModel: triadBuildViewModel
     @Environment(\.colorScheme) var colorScheme
 
-    @State private var showingKeyboard = false
     @State private var showMoreQualities = false
-    @State private var rootCollapseWorkItem: DispatchWorkItem?
+    @State private var qualityCatalogExpanded = true
+    @State private var rootAttentionTick = 0
 
     private var hasQualitySelected: Bool {
         viewModel.major || viewModel.minor || viewModel.aug || viewModel.dim ||
@@ -28,66 +28,136 @@ struct InputTriadAns: View {
         !viewModel.root.isEmpty && hasQualitySelected
     }
 
+    /// Browsing qualities (Change open) — pin result top and grow the options band.
+    private var isBrowsingQualities: Bool {
+        qualityCatalogExpanded
+    }
+
     var body: some View {
-        ScrollView {
+        GeometryReader { geo in
             VStack(spacing: 0) {
-                if viewModel.root.isEmpty {
-                    InputCoachingLine(text: "Choose a root, then a quality")
-                }
-
-                RootNoteField(
-                    placeholder: "Root Note",
-                    root: viewModel.root,
-                    isKeyboardVisible: showingKeyboard,
-                    accentTint: .brandCoral,
-                    onToggleKeyboard: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            showingKeyboard.toggle()
-                        }
-                        HapticManager.shared.lightImpact()
-                    },
-                    onClear: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            viewModel.root = ""
-                            showingKeyboard = false
-                        }
-                    }
-                )
-                .padding(.top, Spacing.md)
-
-                if showingKeyboard {
-                    TriadNotePickerKeyboard(noteText: $viewModel.root)
-                        .padding(.horizontal, Spacing.screenPadding)
-                        .padding(.top, Spacing.sm)
-                        .transition(.slideFromBottom)
-                }
-
-                if !viewModel.root.isEmpty {
-                    GroupedOptionPicker(
-                        sectionTitle: "Chord Quality",
-                        common: commonQualityOptions,
-                        moreGroups: moreQualityGroups,
-                        activeFill: .brandCoral,
-                        selectedAccent: .brandCoral,
-                        showMore: $showMoreQualities
-                    )
-                    .padding(.top, Spacing.md)
-                    .transition(.scaleAndFade)
-                }
-
                 if showResult {
-                    AnswerResultPanel(title: getChordLabel(), accent: .brandCoral) {
-                        chordNotesRow
+                    // Settled: sit result just above controls. Browsing: pin top.
+                    Group {
+                        if isBrowsingQualities {
+                            resultBand
+                                .frame(maxWidth: .infinity, alignment: .top)
+                        } else {
+                            VStack(spacing: 0) {
+                                Spacer(minLength: 0)
+                                resultBand
+                                // Small gap before the controls band / fade.
+                                Spacer()
+                                    .frame(height: Spacing.sm)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
                     }
+                } else {
+                    // Keep controls bottom-anchored when result clears (e.g. root ⌫).
+                    Spacer(minLength: 0)
                 }
 
-                Spacer(minLength: Spacing.xxxl)
+                controlsBand(maxHeight: controlsMaxHeight(in: geo.size.height))
+            }
+            .padding(.top, Spacing.sm)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        }
+        .animation(AppAnimation.quickSpring, value: showResult)
+        .animation(AppAnimation.quickSpring, value: qualityCatalogExpanded)
+        .animation(AppAnimation.quickSpring, value: showMoreQualities)
+    }
+
+    /// Always capped so the controls band sits at the bottom (never full-screen stretch).
+    private func controlsMaxHeight(in total: CGFloat) -> CGFloat {
+        if isBrowsingQualities {
+            // Catalog open: give options room, still leave top breathing room.
+            return max(300, total * (showResult ? 0.82 : 0.88))
+        }
+        if showResult {
+            // Slightly shorter controls band so settled result sits lower on screen.
+            return max(240, total * 0.48)
+        }
+        // No result: compact control stack height, Spacer above holds them down.
+        return max(280, total * 0.55)
+    }
+
+    private var resultBand: some View {
+        AnswerResultPanel(title: getChordLabel(), accent: .brandCoral) {
+            chordNotesRow
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity)
+        .transition(.opacity)
+    }
+
+    private func controlsBand(maxHeight: CGFloat) -> some View {
+        ZStack(alignment: .top) {
+            ScrollView {
+                controlsColumn
+                    .padding(.top, Spacing.sm)
+                    .padding(.bottom, Spacing.tabBarClearance)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            // Always bottom-anchor so ⌫ / clear never flings controls to the top.
+            .defaultScrollAnchor(.bottom)
+
+            // Subtle fade only while browsing qualities under a result.
+            if showResult && isBrowsingQualities {
+                CanvasEdgeFade(edge: .top, height: 24)
+                    .opacity(0.9)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
             }
         }
-        .scrollDismissesKeyboard(.interactively)
-        .onChange(of: viewModel.root) { _, newValue in
-            scheduleKeyboardCollapseIfNeeded(root: newValue)
+        .frame(maxWidth: .infinity, maxHeight: maxHeight, alignment: .bottom)
+        .background(Color.brandBeige)
+    }
+
+    private var controlsColumn: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            rootBlock
+            GroupedOptionPicker(
+                sectionTitle: "Quality",
+                common: commonQualityOptions,
+                moreGroups: moreQualityGroups,
+                activeFill: .brandCoral,
+                selectedAccent: .brandCoral,
+                isCatalogExpanded: $qualityCatalogExpanded,
+                showMore: $showMoreQualities
+            )
         }
+    }
+
+    private var rootBlock: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("Root")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundColor(.inkSecondary)
+                .textCase(.uppercase)
+                .tracking(0.4)
+                .padding(.horizontal, Spacing.screenPadding)
+
+            Text(viewModel.root.isEmpty ? "—" : viewModel.root)
+                .font(.noteName)
+                .foregroundColor(viewModel.root.isEmpty ? .inkTertiary : .inkPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Spacing.screenPadding)
+
+            TriadNotePickerKeyboard(
+                noteText: $viewModel.root,
+                canClearQuality: hasQualitySelected
+            ) {
+                withAnimation(AppAnimation.quickSpring) {
+                    viewModel.resetButtons()
+                    // Re-open catalog to pick again, but keep controls bottom-anchored.
+                    qualityCatalogExpanded = true
+                    showMoreQualities = false
+                }
+            }
+            .padding(.horizontal, Spacing.screenPadding)
+        }
+        .attentionPulse(tick: rootAttentionTick, accent: .brandCoral)
     }
 
     // MARK: - Quality options
@@ -147,22 +217,12 @@ struct InputTriadAns: View {
         withAnimation(AppAnimation.quickSpring) {
             viewModel.resetButtons()
             mutate(viewModel)
-            showingKeyboard = false
-            // Always collapse advanced; selection is pinned into the preview tiles.
-            showMoreQualities = false
         }
-    }
-
-    private func scheduleKeyboardCollapseIfNeeded(root: String) {
-        rootCollapseWorkItem?.cancel()
-        guard !root.isEmpty else { return }
-        let work = DispatchWorkItem {
-            withAnimation(AppAnimation.quickSpring) {
-                showingKeyboard = false
-            }
+        // Quality chosen before a root — standard attention pulse on notes UI.
+        if viewModel.root.isEmpty {
+            HapticManager.shared.warning()
+            rootAttentionTick += 1
         }
-        rootCollapseWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: work)
     }
 
     // MARK: - Notes + intervals (aligned under each tone)
@@ -274,7 +334,7 @@ struct NoteCard: View {
     var body: some View {
         VStack(spacing: 6) {
             Text(note)
-                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(.inkPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.45)
@@ -290,11 +350,11 @@ struct NoteCard: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(minHeight: interval == nil ? 80 : 92)
+        .frame(minHeight: interval == nil ? 64 : 72)
         .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.md)
+        .padding(.vertical, Spacing.sm)
         .background(
-            RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium, style: .continuous)
+            Spacing.shapeMedium
                 .fill(Color.surfaceCard)
         )
         .scaleEffect(appeared ? 1.0 : 0.8)
@@ -336,9 +396,17 @@ struct NoteCard: View {
 // Custom Note Picker Keyboard
 struct TriadNotePickerKeyboard: View {
     @Binding var noteText: String
+    /// True when a quality is selected — extra ⌫ on empty root clears quality.
+    var canClearQuality: Bool = false
+    /// Called when ⌫ is pressed while root is already empty (clear quality).
+    var onRootEmpty: (() -> Void)? = nil
     @State private var pressedButton: String? = nil
 
     private let naturalNotes = ["C", "D", "E", "F", "G", "A", "B"]
+
+    private var canBackspace: Bool {
+        !noteText.isEmpty || canClearQuality
+    }
 
     var body: some View {
         VStack(spacing: 10) {
@@ -361,16 +429,22 @@ struct TriadNotePickerKeyboard: View {
 
                 Spacer(minLength: 12)
 
-                TriadNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.pastelRed.opacity(0.85)) {
+                TriadNoteButton(
+                    label: "⌫",
+                    isPressed: pressedButton == "⌫",
+                    backgroundColor: canBackspace ? Color.mutedRed : Color.backspaceIdle
+                ) {
                     backspace()
                 }
                 .frame(maxWidth: 88)
+                .opacity(canBackspace ? 1 : 0.65)
+                .disabled(!canBackspace)
             }
         }
     }
 
     private func appendNote(_ note: String) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+        withAnimation(AppAnimation.quickSpring) {
             noteText = note
         }
         pressedButton = note
@@ -387,15 +461,15 @@ struct TriadNotePickerKeyboard: View {
             let hasFlat = noteText.contains("b")
 
             if accidental == "#" && hasFlat {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     noteText = String(noteText.filter { $0 != "b" }) + "#"
                 }
             } else if accidental == "b" && hasSharp {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     noteText = String(noteText.filter { $0 != "#" }) + "b"
                 }
             } else if noteText.filter({ $0 == "#" || $0 == "b" }).count < 3 {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     noteText += accidental
                 }
             }
@@ -410,9 +484,12 @@ struct TriadNotePickerKeyboard: View {
 
     private func backspace() {
         if !noteText.isEmpty {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            // Remove letters only — quality clears on a later press when root is already empty.
+            withAnimation(AppAnimation.quickSpring) {
                 noteText.removeLast()
             }
+        } else if canClearQuality {
+            onRootEmpty?()
         }
         pressedButton = "⌫"
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -438,10 +515,10 @@ struct TriadNoteButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    Spacing.shapeSmall
                         .fill(isSelected ? Color.lightTintCoral : backgroundColor)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            Spacing.shapeSmall
                                 .strokeBorder(
                                     isSelected ? Color.brandCoral.opacity(0.7) : Color.black.opacity(0.1),
                                     lineWidth: isSelected ? 2 : 1

@@ -45,7 +45,7 @@ struct ChordView_Deprecated: View {
                                     
                             }.padding(-10)
                             ZStack(alignment: .topLeading) {
-                                RoundedRectangle(cornerRadius: 15)
+                                Spacing.shapeMedium
                                     .frame(maxWidth: .infinity, maxHeight: 75)
                                     .foregroundColor(Color(#colorLiteral(red: 1, green: 0.4431372549, blue: 0.4431372549, alpha: 1)))
                                 NavigationLink(destination: TriadView(), label: {

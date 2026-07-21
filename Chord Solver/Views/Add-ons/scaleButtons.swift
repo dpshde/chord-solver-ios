@@ -24,7 +24,7 @@ struct scaleButtons: View {
                 generator.impactOccurred()
 
                 // Execute action with animation
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     switch name {
                         case "Major":
                             active.toggle()
@@ -86,14 +86,14 @@ struct scaleButtons: View {
                             active.toggle()
                             viewModel.resetButtons()
                             viewModel.lydDom.toggle()
-                        case "Mixolydian ♭13":
+                        case "Mixolydian ♭13", "Mixolydian ♭6", "Mixo ♭6":
                             active.toggle()
                             viewModel.resetButtons()
                             viewModel.mixoB6.toggle()
-                        case "Locrian #2":
+                        case "Locrian #2", "Locrian ♮2":
                             active.toggle()
                             viewModel.resetButtons()
-                            viewModel.supLoc.toggle()
+                            viewModel.locNat2.toggle()
                         case "Altered":
                             active.toggle()
                             viewModel.resetButtons()
@@ -109,7 +109,7 @@ struct scaleButtons: View {
 
         }
         .scaleEffect(isPressed ? 0.95 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+        .animation(AppAnimation.quickSpring, value: isPressed)
         .onLongPressGesture(
             minimumDuration: .infinity,
             pressing: { pressing in

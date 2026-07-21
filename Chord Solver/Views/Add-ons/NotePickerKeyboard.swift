@@ -19,33 +19,16 @@ struct NotePickerKeyboard: View {
     var body: some View {
         VStack(spacing: 12) {
 
-            // Display current input
-            HStack {
-                Text(noteText.isEmpty ? "Tap notes below" : noteText)
-                    .font(.system(size: 24, weight: .semibold, design: .monospaced))
-                    .foregroundColor(noteText.isEmpty ? .white.opacity(0.5) : .white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                // Clear button
-                if !noteText.isEmpty {
-                    Button(action: {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            noteText = ""
-                        }
-                        let generator = UIImpactFeedbackGenerator(style: .light)
-                        generator.impactOccurred()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                }
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white.opacity(0.1))
-            )
+            // Display current input (use ⌫ on the pad to edit)
+            Text(noteText.isEmpty ? "Tap notes below" : noteText)
+                .font(.system(size: 24, weight: .semibold, design: .monospaced))
+                .foregroundColor(noteText.isEmpty ? .white.opacity(0.5) : .white)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(
+                    Spacing.shapeSmall
+                        .fill(Color.white.opacity(0.1))
+                )
 
             // Natural notes (C D E F G A B)
             HStack(spacing: 8) {
@@ -94,7 +77,7 @@ struct NotePickerKeyboard: View {
 
     private func appendNote(_ note: String) {
         // Reset when adding a new natural note
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+        withAnimation(AppAnimation.quickSpring) {
             // If the current note text is complete, start fresh
             noteText = note
         }
@@ -111,7 +94,7 @@ struct NotePickerKeyboard: View {
     private func appendAccidental(_ accidental: String) {
         // Only add accidental if there's a natural note and not too many accidentals
         if !noteText.isEmpty && noteText.filter({ $0 == "#" || $0 == "b" }).count < 3 {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            withAnimation(AppAnimation.quickSpring) {
                 noteText += accidental
             }
         }
@@ -127,7 +110,7 @@ struct NotePickerKeyboard: View {
 
     private func backspace() {
         if !noteText.isEmpty {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            withAnimation(AppAnimation.quickSpring) {
                 noteText.removeLast()
             }
         }
@@ -157,7 +140,7 @@ struct NoteButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
+                    Spacing.shapeSmall
                         .fill(backgroundColor)
                         .shadow(
                             color: Color.black.opacity(isPressed ? 0.3 : 0.1),

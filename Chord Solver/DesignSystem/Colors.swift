@@ -30,11 +30,15 @@ extension Color {
     static let brandPurpleSoft = Color(red: 0.78, green: 0.76, blue: 1.0)
     static let brandAquaSoft = Color(red: 0.62, green: 0.85, blue: 0.87)
 
-    /// Warm beige - page background
-    static let brandBeige = Color(red: 0.96, green: 0.93, blue: 0.89)
+    /// Vivace Theory tab — warm burnt orange (from Vivace DE6E4B, deepened for white type)
+    static let brandVivace = Color(red: 0.82, green: 0.38, blue: 0.26)
+    static let brandVivaceSoft = Color(red: 0.95, green: 0.72, blue: 0.62)
 
-    /// Darker beige - contrast strip if needed
-    static let darkBeige = Color(red: 0.90, green: 0.86, blue: 0.80)
+    /// App canvas — ghost white (CSS ghostwhite ≈ #F8F8FF)
+    static let brandBeige = Color(red: 248 / 255, green: 248 / 255, blue: 255 / 255)
+
+    /// Subtle secondary surface one step below ghost white
+    static let darkBeige = Color(red: 0.94, green: 0.94, blue: 0.97)
 
     // MARK: - Surfaces & Ink (shared UI chrome)
 
@@ -74,6 +78,10 @@ extension Color {
             return brandPurple
         case .intervals:
             return brandAqua
+        case .vivace:
+            return brandVivace
+        case .ask:
+            return brandAqua
         }
     }
 
@@ -90,6 +98,10 @@ extension Color {
             return brandCoral
         case .intervals:
             return brandPurple
+        case .vivace:
+            return brandVivace
+        case .ask:
+            return brandAqua
         }
     }
 
@@ -137,11 +149,17 @@ extension Color {
     /// Tab highlight aqua - slightly more visible than input selection tint
     static let tabHighlightAqua = Color(red: 0.90, green: 0.96, blue: 0.97)
 
-    /// Neutral gray for non-selection buttons (like backspace)
+    /// Neutral gray for non-selection buttons
     static let neutralGray = Color(red: 0.85, green: 0.85, blue: 0.85)
 
-    /// Darker grey for backspace button
-    static let pastelRed = Color(red: 0.75, green: 0.75, blue: 0.75)
+    /// Soft rose for active backspace (subtle, only when something can be deleted)
+    static let mutedRed = Color(red: 0.92, green: 0.72, blue: 0.72)
+
+    /// Idle backspace / empty destructive control
+    static let backspaceIdle = Color(red: 0.93, green: 0.93, blue: 0.94)
+
+    /// Legacy name used by keyboards — maps to muted red
+    static let pastelRed = mutedRed
 
     // MARK: - Text Colors
 
@@ -181,4 +199,6 @@ enum AppSection {
     case chords
     case scales
     case intervals
+    case vivace
+    case ask
 }

@@ -54,6 +54,9 @@ enum Spacing {
     /// Space between interactive elements (buttons)
     static let buttonSpacing: CGFloat = sm
 
+    /// Breathing room above the tab bar so bottom-anchored controls don’t sit flush.
+    static let tabBarClearance: CGFloat = xl
+
     // MARK: - Component Specific
 
     /// Height for navigation cards/buttons
@@ -65,14 +68,41 @@ enum Spacing {
     /// Height for quality buttons
     static let qualityButtonHeight: CGFloat = 50
 
-    /// Corner radius for cards
-    static let cornerRadiusMedium: CGFloat = 15
+    // MARK: - Corner radius tokens (single source of truth)
 
-    /// Corner radius for buttons
-    static let cornerRadiusSmall: CGFloat = 10
+    /// 12pt — controls, keys, tiles, input fields, disclosure rows
+    static let cornerRadiusSmall: CGFloat = 12
 
-    /// Corner radius for quality chips
-    static let cornerRadiusChip: CGFloat = 20
+    /// 16pt — cards, result panels, note result tiles, calculator keys
+    static let cornerRadiusMedium: CGFloat = 16
+
+    /// 20pt — large chips / feature buttons
+    static let cornerRadiusLarge: CGFloat = 20
+
+    /// Alias for chips (maps to large)
+    static let cornerRadiusChip: CGFloat = cornerRadiusLarge
+
+    // MARK: - Corner shapes (always continuous — use these, not raw RoundedRectangle)
+
+    /// Controls, keys, tiles, inputs, disclosure rows
+    static var shapeSmall: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadiusSmall, style: .continuous)
+    }
+
+    /// Cards, result panels, note tiles, calculator keys
+    static var shapeMedium: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadiusMedium, style: .continuous)
+    }
+
+    /// Large chips / feature buttons
+    static var shapeLarge: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadiusLarge, style: .continuous)
+    }
+
+    /// Feature / quality chips
+    static var shapeChip: RoundedRectangle {
+        RoundedRectangle(cornerRadius: cornerRadiusChip, style: .continuous)
+    }
 }
 
 // MARK: - EdgeInsets Presets

@@ -4,6 +4,7 @@
 //
 //  Created by Dylan Shade on 10/8/25.
 //  Design System - Reusable Animation Definitions
+//  Bias: quick settle, high damping (smooth, not floaty).
 //
 
 import SwiftUI
@@ -13,49 +14,45 @@ enum AppAnimation {
 
     // MARK: - Basic Animations
 
-    /// Quick spring animation for button taps and interactions
+    /// Snappy spring for taps, collapse/expand, selection (most UI).
     static let quickSpring = Animation.spring(
-        response: 0.3,
-        dampingFraction: 0.7,
+        response: 0.22,
+        dampingFraction: 0.9,
         blendDuration: 0
     )
 
-    /// Smooth spring animation for card movements
+    /// Slightly longer spring for layout shifts (result band, catalog).
     static let smoothSpring = Animation.spring(
-        response: 0.5,
-        dampingFraction: 0.75,
+        response: 0.3,
+        dampingFraction: 0.92,
         blendDuration: 0
     )
 
-    /// Bouncy spring animation for playful effects
+    /// Light pop for note chips — damped enough to avoid wobble.
     static let bouncySpring = Animation.spring(
-        response: 0.4,
-        dampingFraction: 0.6,
+        response: 0.26,
+        dampingFraction: 0.82,
         blendDuration: 0
     )
 
-    /// Gentle ease for subtle transitions
-    static let gentleEase = Animation.easeInOut(duration: 0.3)
+    /// Short ease for subtle fades
+    static let gentleEase = Animation.easeInOut(duration: 0.18)
 
-    /// Smooth ease for page transitions
-    static let smoothEase = Animation.easeInOut(duration: 0.5)
+    /// Page / panel ease
+    static let smoothEase = Animation.easeInOut(duration: 0.26)
 
-    // MARK: - Complex Animations
+    /// Press feedback (buttons, tiles)
+    static let press = Animation.easeOut(duration: 0.08)
 
-    /// Animation for button press
+    // MARK: - Semantic aliases
+
     static let buttonPress = quickSpring
-
-    /// Animation for page transitions
     static let pageTransition = smoothSpring
-
-    /// Animation for modal presentations
     static let modalPresentation = smoothEase
+    static let resultAppearance = smoothSpring
 
-    /// Animation for result appearance
-    static let resultAppearance = bouncySpring
-
-    /// Animation for error shake
-    static let errorShake = Animation.default.repeatCount(3, autoreverses: true).speed(2)
+    /// Legacy alias — prefer `attentionPulse` for “needs input” cues.
+    static let errorShake = Animation.easeOut(duration: 0.2)
 }
 
 // MARK: - Animation View Modifiers
@@ -65,8 +62,8 @@ struct ScaleOnPressModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .scaleEffect(isPressed ? 0.95 : 1.0)
-            .animation(AppAnimation.quickSpring, value: isPressed)
+            .scaleEffect(isPressed ? 0.97 : 1.0)
+            .animation(AppAnimation.press, value: isPressed)
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .updating($isPressed) { _, state, _ in
@@ -76,9 +73,35 @@ struct ScaleOnPressModifier: ViewModifier {
     }
 }
 
+/// Standard attention cue: brief scale pulse only (no border flash).
+/// Trigger by bumping `tick` (e.g. `attentionTick += 1`).
+struct AttentionPulseModifier: ViewModifier {
+    let tick: Int
+    var accent: Color = .brandCoral
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var active = false
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(active && !reduceMotion ? 1.02 : 1.0)
+            .animation(AppAnimation.quickSpring, value: active)
+            .onChange(of: tick) { _, _ in
+                guard tick > 0 else { return }
+                active = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
+                    active = false
+                }
+            }
+            // `accent` retained for call-site compatibility (ring removed).
+            .onAppear { _ = accent }
+    }
+}
+
+/// Kept for EnhancedInputField and any legacy callers; prefer AttentionPulseModifier.
 struct ShakeEffect: GeometryEffect {
-    var amount: CGFloat = 10
-    var shakesPerUnit = 3
+    var amount: CGFloat = 4
+    var shakesPerUnit = 2
     var animatableData: CGFloat
 
     func effectValue(size: CGSize) -> ProjectionTransform {
@@ -107,8 +130,8 @@ extension AnyTransition {
         removal: .move(edge: .trailing).combined(with: .opacity)
     )
 
-    /// Scale and fade transition
-    static let scaleAndFade = AnyTransition.scale(scale: 0.8).combined(with: .opacity)
+    /// Subtle scale + fade
+    static let scaleAndFade = AnyTransition.scale(scale: 0.96).combined(with: .opacity)
 }
 
 // MARK: - View Extensions
@@ -119,14 +142,19 @@ extension View {
         modifier(ScaleOnPressModifier())
     }
 
-    /// Applies a shake animation
+    /// Applies a shake animation (legacy)
     func shake(isShaking: Bool) -> some View {
         modifier(ShakeEffect(animatableData: isShaking ? 1 : 0))
+    }
+
+    /// Standard “needs attention” pulse (scale + accent ring). Bump `tick` to fire.
+    func attentionPulse(tick: Int, accent: Color = .brandCoral) -> some View {
+        modifier(AttentionPulseModifier(tick: tick, accent: accent))
     }
 
     /// Animates appearance with spring
     func springAppear() -> some View {
         self.transition(.scaleAndFade)
-            .animation(AppAnimation.bouncySpring, value: UUID())
+            .animation(AppAnimation.smoothSpring, value: UUID())
     }
 }

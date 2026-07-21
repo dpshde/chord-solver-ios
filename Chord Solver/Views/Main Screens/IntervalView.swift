@@ -39,13 +39,6 @@ struct IntervalView: View {
                             focus = focus == .lower ? nil : .lower
                         }
                         HapticManager.shared.lightImpact()
-                    } onClear: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            session.bottomNote = ""
-                            session.intervalResult = ""
-                            if focus == .lower { focus = nil }
-                        }
-                        HapticManager.shared.lightImpact()
                     }
 
                     if focus == .lower {
@@ -90,13 +83,6 @@ struct IntervalView: View {
                             focus = focus == .upper ? nil : .upper
                         }
                         HapticManager.shared.lightImpact()
-                    } onClear: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            session.topNote = ""
-                            session.intervalResult = ""
-                            if focus == .upper { focus = nil }
-                        }
-                        HapticManager.shared.lightImpact()
                     }
 
                     if focus == .upper {
@@ -123,50 +109,40 @@ struct IntervalView: View {
         title: String,
         note: String,
         isFocused: Bool,
-        onTap: @escaping () -> Void,
-        onClear: @escaping () -> Void
+        onTap: @escaping () -> Void
     ) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text(title)
                 .font(.headline)
                 .foregroundColor(.textOnLight)
 
-            HStack(spacing: Spacing.sm) {
-                Button(action: onTap) {
-                    HStack {
-                        Text(note.isEmpty ? "Tap to enter" : note)
-                            .foregroundColor(note.isEmpty ? Color.black.opacity(0.4) : .textOnLight)
-                            .font(.noteName)
+            Button(action: onTap) {
+                HStack {
+                    Text(note.isEmpty ? "Note" : note)
+                        .foregroundColor(note.isEmpty ? .inkTertiary : .inkPrimary)
+                        .font(.noteName)
 
-                        Spacer()
+                    Spacer()
 
-                        Image(systemName: isFocused ? "keyboard.chevron.compact.down" : "keyboard")
-                            .foregroundColor(.textOnLight)
-                    }
-                    .padding(Spacing.contentPadding)
-                    .background(
-                        RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                            .fill(Color.white.opacity(0.5))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
-                                    .stroke(
-                                        isFocused ? Color.brandAqua.opacity(0.8) : Color.black.opacity(0.4),
-                                        lineWidth: isFocused ? 2.5 : 2
-                                    )
-                            )
-                    )
+                    Image(systemName: isFocused ? "keyboard.chevron.compact.down" : "keyboard")
+                        .foregroundColor(isFocused ? .brandAqua : .inkSecondary)
                 }
-                .buttonStyle(PlainButtonStyle())
-
-                if !note.isEmpty {
-                    Button(action: onClear) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundColor(.textOnLight.opacity(0.45))
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
+                .padding(.horizontal, Spacing.contentPadding)
+                .frame(minHeight: 56)
+                .background(
+                    Spacing.shapeSmall
+                        .fill(Color.surfaceCard)
+                        .overlay(
+                            Spacing.shapeSmall
+                                .strokeBorder(
+                                    isFocused ? Color.brandAqua : Color.borderStrong,
+                                    lineWidth: isFocused ? 2 : 1
+                                )
+                        )
+                )
             }
+            .buttonStyle(PlainButtonStyle())
+            .accessibilityLabel("\(title), \(note.isEmpty ? "empty" : note)")
         }
     }
 
@@ -204,7 +180,6 @@ struct IntervalView: View {
     private func calculateIntervalIfReady() {
         if !session.bottomNote.isEmpty && !session.topNote.isEmpty {
             calculateInterval()
-            HapticManager.shared.success()
         } else {
             session.intervalResult = ""
         }
@@ -213,8 +188,14 @@ struct IntervalView: View {
     private func calculateInterval() {
         let interval = Interval(bottom: session.bottomNote, top: session.topNote)
         let result = interval.dToName()
+        let resolved = result.isEmpty ? "Invalid interval" : result
         withAnimation(AppAnimation.bouncySpring) {
-            session.intervalResult = result.isEmpty ? "Invalid interval" : result
+            session.intervalResult = resolved
+        }
+        if result.isEmpty {
+            HapticManager.shared.lightImpact()
+        } else {
+            HapticManager.shared.success()
         }
     }
 

@@ -12,81 +12,142 @@ struct scalesAnsView: View {
 
     @EnvironmentObject var viewModel: scalesViewModel
     @Environment(\.colorScheme) var colorScheme
-    @State private var showingKeyboard = false
     @State private var showMoreScales = false
-    @State private var rootCollapseWorkItem: DispatchWorkItem?
+    @State private var scaleCatalogExpanded = true
+    @State private var rootAttentionTick = 0
 
     private var hasScaleSelected: Bool {
         viewModel.major || viewModel.minorNat || viewModel.minorHarm ||
         viewModel.minorMel || viewModel.dorian || viewModel.phrygian || viewModel.lydian ||
         viewModel.mixo || viewModel.locrian || viewModel.pentatonic || viewModel.wholeTone ||
-        viewModel.octatonic || viewModel.dorB2 || viewModel.lydianAug || viewModel.lydDom || viewModel.supLoc
+        viewModel.octatonic || viewModel.dorB2 || viewModel.lydianAug || viewModel.lydDom ||
+        viewModel.mixoB6 || viewModel.locNat2 || viewModel.supLoc
     }
 
     private var showResult: Bool {
         !viewModel.root.isEmpty && hasScaleSelected
     }
 
+    private var isBrowsingScales: Bool {
+        scaleCatalogExpanded
+    }
+
     var body: some View {
-        ScrollView {
+        GeometryReader { geo in
             VStack(spacing: 0) {
-                if viewModel.root.isEmpty {
-                    InputCoachingLine(text: "Choose a root, then a scale type")
-                }
-
-                RootNoteField(
-                    placeholder: "Root Note",
-                    root: viewModel.root,
-                    isKeyboardVisible: showingKeyboard,
-                    accentTint: .brandPurple,
-                    onToggleKeyboard: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            showingKeyboard.toggle()
-                        }
-                        HapticManager.shared.lightImpact()
-                    },
-                    onClear: {
-                        withAnimation(AppAnimation.quickSpring) {
-                            viewModel.root = ""
-                            showingKeyboard = false
-                        }
-                    }
-                )
-                .padding(.top, Spacing.md)
-
-                if showingKeyboard {
-                    ScaleNotePickerKeyboard(noteText: $viewModel.root)
-                        .padding(.horizontal, Spacing.screenPadding)
-                        .padding(.top, Spacing.sm)
-                        .transition(.slideFromBottom)
-                }
-
-                if !viewModel.root.isEmpty {
-                    GroupedOptionPicker(
-                        sectionTitle: "Scale Type",
-                        common: commonScaleOptions,
-                        moreGroups: moreScaleGroups,
-                        activeFill: .brandPurple,
-                        selectedAccent: .brandPurple,
-                        showMore: $showMoreScales
-                    )
-                    .padding(.top, Spacing.md)
-                    .transition(.scaleAndFade)
-                }
-
                 if showResult {
-                    AnswerResultPanel(title: getScaleLabel(), accent: .brandPurple) {
-                        scaleNotesContent
+                    // Settled: sit result just above controls. Browsing: pin top.
+                    Group {
+                        if isBrowsingScales {
+                            resultBand
+                                .frame(maxWidth: .infinity, alignment: .top)
+                        } else {
+                            VStack(spacing: 0) {
+                                Spacer(minLength: 0)
+                                resultBand
+                                Spacer()
+                                    .frame(height: Spacing.sm)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        }
                     }
+                } else {
+                    Spacer(minLength: 0)
                 }
 
-                Spacer(minLength: Spacing.xxxl)
+                controlsBand(maxHeight: controlsMaxHeight(in: geo.size.height))
+            }
+            .padding(.top, Spacing.sm)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+        }
+        .animation(AppAnimation.quickSpring, value: showResult)
+        .animation(AppAnimation.quickSpring, value: scaleCatalogExpanded)
+        .animation(AppAnimation.quickSpring, value: showMoreScales)
+    }
+
+    private func controlsMaxHeight(in total: CGFloat) -> CGFloat {
+        if isBrowsingScales {
+            return max(300, total * (showResult ? 0.82 : 0.88))
+        }
+        if showResult {
+            return max(240, total * 0.48)
+        }
+        return max(280, total * 0.55)
+    }
+
+    private var resultBand: some View {
+        AnswerResultPanel(title: getScaleLabel(), accent: .brandPurple) {
+            scaleNotesContent
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity)
+        .transition(.opacity)
+    }
+
+    private func controlsBand(maxHeight: CGFloat) -> some View {
+        ZStack(alignment: .top) {
+            ScrollView {
+                controlsColumn
+                    .padding(.top, Spacing.sm)
+                    .padding(.bottom, Spacing.tabBarClearance)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .defaultScrollAnchor(.bottom)
+
+            if showResult && isBrowsingScales {
+                CanvasEdgeFade(edge: .top, height: 24)
+                    .opacity(0.9)
+                    .allowsHitTesting(false)
+                    .transition(.opacity)
             }
         }
-        .scrollDismissesKeyboard(.interactively)
-        .onChange(of: viewModel.root) { _, newValue in
-            scheduleKeyboardCollapseIfNeeded(root: newValue)
+        .frame(maxWidth: .infinity, maxHeight: maxHeight, alignment: .bottom)
+        .background(Color.brandBeige)
+    }
+
+    private var controlsColumn: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            rootBlock
+            GroupedOptionPicker(
+                sectionTitle: "Scale",
+                common: commonScaleOptions,
+                moreGroups: moreScaleGroups,
+                activeFill: .brandPurple,
+                selectedAccent: .brandPurple,
+                isCatalogExpanded: $scaleCatalogExpanded,
+                showMore: $showMoreScales
+            )
         }
+    }
+
+    private var rootBlock: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("Root")
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundColor(.inkSecondary)
+                .textCase(.uppercase)
+                .tracking(0.4)
+                .padding(.horizontal, Spacing.screenPadding)
+
+            Text(viewModel.root.isEmpty ? "—" : viewModel.root)
+                .font(.noteName)
+                .foregroundColor(viewModel.root.isEmpty ? .inkTertiary : .inkPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, Spacing.screenPadding)
+
+            ScaleNotePickerKeyboard(
+                noteText: $viewModel.root,
+                canClearQuality: hasScaleSelected
+            ) {
+                withAnimation(AppAnimation.quickSpring) {
+                    viewModel.resetButtons()
+                    scaleCatalogExpanded = true
+                    showMoreScales = false
+                }
+            }
+            .padding(.horizontal, Spacing.screenPadding)
+        }
+        .attentionPulse(tick: rootAttentionTick, accent: .brandPurple)
     }
 
     private var commonScaleOptions: [ChipOption] {
@@ -124,6 +185,8 @@ struct scalesAnsView: View {
                     chip("dorB2", "Phrygian ♮6", nil, viewModel.dorB2) { select { $0.dorB2 = true } },
                     chip("lydAug", "Lydian Aug", nil, viewModel.lydianAug) { select { $0.lydianAug = true } },
                     chip("lydDom", "Lydian Dom", nil, viewModel.lydDom) { select { $0.lydDom = true } },
+                    chip("mixoB6", "Mixo ♭6", "♭13", viewModel.mixoB6) { select { $0.mixoB6 = true } },
+                    chip("locNat2", "Locrian ♮2", nil, viewModel.locNat2) { select { $0.locNat2 = true } },
                     chip("alt", "Altered", nil, viewModel.supLoc) { select { $0.supLoc = true } },
                 ]
             ),
@@ -144,81 +207,37 @@ struct scalesAnsView: View {
         withAnimation(AppAnimation.quickSpring) {
             viewModel.resetButtons()
             mutate(viewModel)
-            showingKeyboard = false
-            // Always collapse advanced; selection is pinned into the preview tiles.
-            showMoreScales = false
+        }
+        if viewModel.root.isEmpty {
+            HapticManager.shared.warning()
+            rootAttentionTick += 1
         }
     }
 
-    private func scheduleKeyboardCollapseIfNeeded(root: String) {
-        rootCollapseWorkItem?.cancel()
-        guard !root.isEmpty else { return }
-        let work = DispatchWorkItem {
-            withAnimation(AppAnimation.quickSpring) {
-                showingKeyboard = false
-            }
-        }
-        rootCollapseWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45, execute: work)
-    }
-
-    @ViewBuilder
-    private var scaleNotesContent: some View {
+    /// Ordered scale tones for the result strip (root → … → leading tone).
+    private var scaleNotesList: [String] {
         if viewModel.pentatonic {
-            VStack(spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.returnRoot())
-                    ScaleNoteCard(note: viewModel.two())
-                    ScaleNoteCard(note: viewModel.three())
-                }
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.five())
-                    ScaleNoteCard(note: viewModel.six())
-                }
-            }
-        } else if viewModel.wholeTone {
-            VStack(spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.returnRoot())
-                    ScaleNoteCard(note: viewModel.two())
-                    ScaleNoteCard(note: viewModel.three())
-                }
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.four())
-                    ScaleNoteCard(note: viewModel.five())
-                    ScaleNoteCard(note: viewModel.six())
-                }
-            }
-        } else if viewModel.octatonic {
-            VStack(spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.returnRoot())
-                    ScaleNoteCard(note: viewModel.two())
-                    ScaleNoteCard(note: viewModel.three())
-                    ScaleNoteCard(note: viewModel.four())
-                }
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.octFive())
-                    ScaleNoteCard(note: viewModel.octSix())
-                    ScaleNoteCard(note: viewModel.octSev())
-                    ScaleNoteCard(note: viewModel.octEight())
-                }
-            }
-        } else {
-            VStack(spacing: Spacing.sm) {
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.returnRoot())
-                    ScaleNoteCard(note: viewModel.two())
-                    ScaleNoteCard(note: viewModel.three())
-                    ScaleNoteCard(note: viewModel.four())
-                }
-                HStack(spacing: Spacing.sm) {
-                    ScaleNoteCard(note: viewModel.five())
-                    ScaleNoteCard(note: viewModel.six())
-                    ScaleNoteCard(note: viewModel.sev())
-                }
-            }
+            return [viewModel.returnRoot(), viewModel.two(), viewModel.three(),
+                    viewModel.five(), viewModel.six()]
         }
+        if viewModel.wholeTone {
+            return [viewModel.returnRoot(), viewModel.two(), viewModel.three(),
+                    viewModel.four(), viewModel.five(), viewModel.six()]
+        }
+        if viewModel.octatonic {
+            return [
+                viewModel.returnRoot(), viewModel.two(), viewModel.three(), viewModel.four(),
+                viewModel.octFive(), viewModel.octSix(), viewModel.octSev(), viewModel.octEight(),
+            ]
+        }
+        return [
+            viewModel.returnRoot(), viewModel.two(), viewModel.three(), viewModel.four(),
+            viewModel.five(), viewModel.six(), viewModel.sev(),
+        ]
+    }
+
+    private var scaleNotesContent: some View {
+        ScaleNotesStrip(notes: scaleNotesList.filter { !$0.isEmpty })
     }
 
     private func getScaleLabel() -> String {
@@ -238,37 +257,77 @@ struct scalesAnsView: View {
         if viewModel.dorB2 { return "\(root) Phrygian ♮6" }
         if viewModel.lydianAug { return "\(root) Lydian Augmented" }
         if viewModel.lydDom { return "\(root) Lydian Dominant" }
+        if viewModel.mixoB6 { return "\(root) Mixolydian ♭6" }
+        if viewModel.locNat2 { return "\(root) Locrian ♮2" }
         if viewModel.supLoc { return "\(root) Altered" }
         return "Scale Notes"
     }
 }
 
-// MARK: - Scale Note Card Component
+// MARK: - Scale notes strip (single left-to-right sequence)
 
-struct ScaleNoteCard: View {
+/// Beginner-friendly scale display: one ascending row with scale-degree numbers.
+struct ScaleNotesStrip: View {
+    let notes: [String]
+
+    var body: some View {
+        HStack(spacing: Spacing.xs) {
+            ForEach(Array(notes.enumerated()), id: \.offset) { index, note in
+                ScaleDegreeCell(note: note, degree: index + 1)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(
+            notes.enumerated()
+                .map { "\($0.offset + 1), \($0.element)" }
+                .joined(separator: "; ")
+        )
+    }
+}
+
+/// Compact note + degree (1…n) for a single scale step.
+private struct ScaleDegreeCell: View {
     let note: String
+    let degree: Int
     @State private var appeared = false
 
     var body: some View {
-        Text(note)
-            .font(.system(size: 28, weight: .bold, design: .rounded))
-            .foregroundColor(.inkPrimary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.4)
-            .frame(maxWidth: .infinity)
-            .frame(height: 60)
-            .padding(.horizontal, Spacing.xs)
-            .background(
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium, style: .continuous)
-                    .fill(Color.surfaceCard)
-            )
-            .scaleEffect(appeared ? 1.0 : 0.8)
-            .opacity(appeared ? 1.0 : 0.0)
-            .onAppear {
-                withAnimation(AppAnimation.bouncySpring) {
-                    appeared = true
-                }
+        VStack(spacing: 3) {
+            Text(note)
+                .font(.system(size: 17, weight: .bold, design: .rounded))
+                .foregroundColor(.inkPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.45)
+
+            Text("\(degree)")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundColor(.inkTertiary)
+                .monospacedDigit()
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, Spacing.sm)
+        .padding(.horizontal, 2)
+        .background(
+            Spacing.shapeSmall
+                .fill(Color.surfaceCard)
+        )
+        .scaleEffect(appeared ? 1.0 : 0.92)
+        .opacity(appeared ? 1.0 : 0.0)
+        .onAppear {
+            withAnimation(AppAnimation.quickSpring.delay(Double(degree - 1) * 0.03)) {
+                appeared = true
             }
+        }
+        .accessibilityLabel("Degree \(degree), \(note)")
+    }
+}
+
+/// Legacy alias kept for any external references.
+struct ScaleNoteCard: View {
+    let note: String
+
+    var body: some View {
+        ScaleDegreeCell(note: note, degree: 1)
     }
 }
 
@@ -276,9 +335,17 @@ struct ScaleNoteCard: View {
 
 struct ScaleNotePickerKeyboard: View {
     @Binding var noteText: String
+    /// True when a scale is selected — extra ⌫ on empty root clears scale.
+    var canClearQuality: Bool = false
+    /// Called when ⌫ is pressed while root is already empty (clear scale).
+    var onRootEmpty: (() -> Void)? = nil
     @State private var pressedButton: String? = nil
 
     private let naturalNotes = ["C", "D", "E", "F", "G", "A", "B"]
+
+    private var canBackspace: Bool {
+        !noteText.isEmpty || canClearQuality
+    }
 
     var body: some View {
         VStack(spacing: 10) {
@@ -301,16 +368,22 @@ struct ScaleNotePickerKeyboard: View {
 
                 Spacer(minLength: 12)
 
-                ScaleNoteButton(label: "⌫", isPressed: pressedButton == "⌫", backgroundColor: Color.pastelRed.opacity(0.85)) {
+                ScaleNoteButton(
+                    label: "⌫",
+                    isPressed: pressedButton == "⌫",
+                    backgroundColor: canBackspace ? Color.mutedRed : Color.backspaceIdle
+                ) {
                     backspace()
                 }
                 .frame(maxWidth: 88)
+                .opacity(canBackspace ? 1 : 0.65)
+                .disabled(!canBackspace)
             }
         }
     }
 
     private func appendNote(_ note: String) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+        withAnimation(AppAnimation.quickSpring) {
             noteText = note
         }
         pressedButton = note
@@ -327,15 +400,15 @@ struct ScaleNotePickerKeyboard: View {
             let hasFlat = noteText.contains("b")
 
             if accidental == "#" && hasFlat {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     noteText = String(noteText.filter { $0 != "b" }) + "#"
                 }
             } else if accidental == "b" && hasSharp {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     noteText = String(noteText.filter { $0 != "#" }) + "b"
                 }
             } else if noteText.filter({ $0 == "#" || $0 == "b" }).count < 3 {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                withAnimation(AppAnimation.quickSpring) {
                     noteText += accidental
                 }
             }
@@ -350,9 +423,12 @@ struct ScaleNotePickerKeyboard: View {
 
     private func backspace() {
         if !noteText.isEmpty {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            // Remove letters only — scale clears on a later press when root is already empty.
+            withAnimation(AppAnimation.quickSpring) {
                 noteText.removeLast()
             }
+        } else if canClearQuality {
+            onRootEmpty?()
         }
         pressedButton = "⌫"
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -378,10 +454,10 @@ struct ScaleNoteButton: View {
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    Spacing.shapeSmall
                         .fill(isSelected ? Color.lightTintPurple : backgroundColor)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            Spacing.shapeSmall
                                 .strokeBorder(
                                     isSelected ? Color.brandPurple.opacity(0.7) : Color.black.opacity(0.1),
                                     lineWidth: isSelected ? 2 : 1

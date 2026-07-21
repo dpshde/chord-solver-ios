@@ -62,7 +62,12 @@ struct OptionTileGrid: View {
     }
 }
 
-/// Large tappable tile (≥52pt height, full half-width).
+/// Shared control height for option tiles and collapsed Change control.
+enum OptionControlMetrics {
+    static let height: CGFloat = 56
+}
+
+/// Large tappable tile (fixed control height, full half-width).
 /// Selected = solid brand fill + white ink; idle = white card + dark ink.
 struct OptionTileButton: View {
     let title: String
@@ -116,21 +121,20 @@ struct OptionTileButton: View {
                 }
             }
             .frame(maxWidth: .infinity)
-            .frame(minHeight: 52)
+            .frame(height: OptionControlMetrics.height)
             .padding(.horizontal, showsCheckmark ? Spacing.contentPadding : Spacing.sm)
-            .padding(.vertical, Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous)
+                Spacing.shapeSmall
                     .fill(fill)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous)
+                Spacing.shapeSmall
                     .strokeBorder(
                         isActive ? Color.clear : Color.borderSubtle,
                         lineWidth: 1
                     )
             )
-            .contentShape(RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous))
+            .contentShape(Spacing.shapeSmall)
         }
         .buttonStyle(PressableTileStyle())
         .accessibilityAddTraits(isActive ? .isSelected : [])
@@ -144,29 +148,23 @@ private struct PressableTileStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
             .opacity(configuration.isPressed ? 0.92 : 1.0)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+            .animation(AppAnimation.press, value: configuration.isPressed)
     }
 }
 
-// MARK: - Grouped picker (Common + More)
+// MARK: - Grouped picker (select → collapse to selected only)
 
-/// Option picker with Apple-style progressive disclosure:
-/// - Browsing: common tiles + trailing “Show More / Show Less” disclosure
-/// - After selection: only the selected option + “Change” (results shown by parent)
-///
-/// Disclosure follows HIG: label leading, chevron trailing; paired “Show More/Less”
-/// wording; chevron.down rotates 180° when expanded (system-like disclosure).
+/// Common + optional More. Selecting any option collapses More and shows only
+/// the selected tile; “Change” re-opens the full catalog.
 struct GroupedOptionPicker: View {
     let sectionTitle: String
     let common: [ChipOption]
     let moreGroups: [(title: String, options: [ChipOption])]
     let activeFill: Color
     var selectedAccent: Color? = nil
-    /// Bound for parent convenience; mirrors expanded advanced section while browsing.
+    /// Full option catalog is open (vs collapsed Change + selected chip).
+    @Binding var isCatalogExpanded: Bool
     @Binding var showMore: Bool
-
-    /// When false and something is selected, collapse to the single selected option.
-    @State private var isBrowsing: Bool = true
 
     private var allMoreOptions: [ChipOption] {
         moreGroups.flatMap(\.options)
@@ -179,29 +177,25 @@ struct GroupedOptionPicker: View {
         return allMoreOptions.first(where: \.isActive)
     }
 
-    private var activeOptionID: String? {
-        activeOption?.id
-    }
-
     private var hasSelection: Bool {
         activeOption != nil
     }
 
-    /// Collapsed: only the selected option. Browsing: full common set.
+    /// Expanded: full common set. Collapsed: single selected tile only.
     private var displayedPrimaryOptions: [ChipOption] {
-        if !isBrowsing, let active = activeOption {
+        if !isCatalogExpanded, let active = activeOption {
             return [commitWrapped(active)]
         }
         return common.map(commitWrapped)
     }
 
-    private var moreGroupsForDisplay: [(title: String, options: [ChipOption])] {
+    private var moreGroupsWrapped: [(title: String, options: [ChipOption])] {
         moreGroups.map { group in
             (title: group.title, options: group.options.map(commitWrapped))
         }
     }
 
-    /// Every option tap commits the selection and collapses (even re-tapping the same id).
+    /// Tapping any option commits and collapses catalog + More.
     private func commitWrapped(_ option: ChipOption) -> ChipOption {
         ChipOption(
             id: option.id,
@@ -211,7 +205,7 @@ struct GroupedOptionPicker: View {
         ) {
             option.action()
             withAnimation(AppAnimation.quickSpring) {
-                isBrowsing = false
+                isCatalogExpanded = false
                 showMore = false
             }
         }
@@ -221,91 +215,134 @@ struct GroupedOptionPicker: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text(sectionTitle)
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundColor(.textOnLight.opacity(0.55))
+                .foregroundColor(.inkSecondary)
                 .textCase(.uppercase)
                 .tracking(0.4)
                 .padding(.horizontal, Spacing.screenPadding)
 
-            OptionTileGrid(
-                options: displayedPrimaryOptions,
-                activeFill: activeFill,
-                selectedAccent: selectedAccent,
-                showsSelectionCheckmark: !isBrowsing && hasSelection
-            )
+            if isCatalogExpanded {
+                OptionTileGrid(
+                    options: displayedPrimaryOptions,
+                    activeFill: activeFill,
+                    selectedAccent: selectedAccent,
+                    showsSelectionCheckmark: false
+                )
 
-            if isBrowsing {
-                browsingChrome
-            } else if hasSelection {
-                // HIG: explicit “Change” control after a committed selection (Settings-style).
-                DisclosureControlButton(
-                    title: "Change",
-                    isExpanded: false,
-                    showsChevron: true,
-                    chevronSystemName: "chevron.right"
-                ) {
-                    withAnimation(AppAnimation.quickSpring) {
-                        isBrowsing = true
-                        // Jump straight into the full catalog (common + advanced).
-                        showMore = true
+                // Advanced groups first, then Show More/Less at the bottom.
+                if showMore && !moreGroups.isEmpty {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
+                        ForEach(Array(moreGroupsWrapped.enumerated()), id: \.offset) { _, group in
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text(group.title)
+                                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                    .foregroundColor(.inkSecondary)
+                                    .padding(.horizontal, Spacing.screenPadding)
+
+                                OptionTileGrid(
+                                    options: group.options,
+                                    activeFill: activeFill,
+                                    selectedAccent: selectedAccent
+                                )
+                            }
+                        }
                     }
-                    HapticManager.shared.lightImpact()
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
+
+                if !moreGroups.isEmpty {
+                    DisclosureControlButton(
+                        title: showMore ? "Show Less" : "Show More",
+                        isExpanded: showMore,
+                        showsChevron: true,
+                        chevronSystemName: "chevron.down"
+                    ) {
+                        withAnimation(AppAnimation.quickSpring) {
+                            showMore.toggle()
+                        }
+                        HapticManager.shared.lightImpact()
+                    }
+                }
+            } else if let active = activeOption {
+                // One row: Change (left) · selected quality (right).
+                collapsedSelectionRow(active: active)
             }
         }
-        .onChange(of: activeOptionID) { oldID, newID in
-            if newID == nil, oldID != nil {
-                // Selection cleared — return to browsing.
+        .onChange(of: activeOption?.id) { _, newID in
+            // Cleared selection → expand catalog again.
+            if newID == nil {
                 withAnimation(AppAnimation.quickSpring) {
-                    isBrowsing = true
+                    isCatalogExpanded = true
                     showMore = false
                 }
             }
         }
         .onAppear {
-            // Restore collapsed selection state if we already have a pick (tab switch).
+            // After tab switch, keep collapsed if a quality is already chosen.
             if hasSelection {
-                isBrowsing = false
+                isCatalogExpanded = false
                 showMore = false
             }
         }
     }
 
-    @ViewBuilder
-    private var browsingChrome: some View {
-        if !moreGroups.isEmpty {
-            // HIG disclosure: trailing chevron, Show More / Show Less pair.
-            DisclosureControlButton(
-                title: showMore ? "Show Less" : "Show More",
-                isExpanded: showMore,
-                showsChevron: true,
-                chevronSystemName: "chevron.down"
-            ) {
-                withAnimation(AppAnimation.quickSpring) {
-                    showMore.toggle()
+    /// Collapsed chrome: Change (compact, left) · selected quality (fills right).
+    /// Both controls share `OptionControlMetrics.height`.
+    private func collapsedSelectionRow(active: ChipOption) -> some View {
+        HStack(alignment: .center, spacing: Spacing.sm) {
+            Button(action: expandCatalog) {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(.inkSecondary)
+                    Text("Change")
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(.inkPrimary)
+                        .lineLimit(1)
                 }
-                HapticManager.shared.lightImpact()
+                .padding(.horizontal, Spacing.md)
+                .frame(height: OptionControlMetrics.height)
+                .background(
+                    Spacing.shapeSmall
+                        .fill(Color.surfaceCard)
+                )
+                .overlay(
+                    Spacing.shapeSmall
+                        .strokeBorder(Color.borderSubtle, lineWidth: 1)
+                )
+                .contentShape(Spacing.shapeSmall)
             }
+            .buttonStyle(.plain)
+            .fixedSize(horizontal: true, vertical: true)
+            .zIndex(1)
+            .accessibilityLabel("Change selection")
+            .accessibilityAddTraits(.isButton)
 
-            if showMore {
-                VStack(alignment: .leading, spacing: Spacing.lg) {
-                    ForEach(Array(moreGroupsForDisplay.enumerated()), id: \.offset) { _, group in
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            Text(group.title)
-                                .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                .foregroundColor(.textOnLight.opacity(0.5))
-                                .padding(.horizontal, Spacing.screenPadding)
-
-                            OptionTileGrid(
-                                options: group.options,
-                                activeFill: activeFill,
-                                selectedAccent: selectedAccent
-                            )
-                        }
-                    }
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
+            OptionTileButton(
+                title: active.title,
+                detail: active.detail,
+                isActive: true,
+                activeFill: activeFill,
+                selectedAccent: selectedAccent,
+                showsCheckmark: true,
+                // Re-tapping selected quality also re-opens the catalog (same as Change).
+                action: expandCatalog
+            )
+            .frame(maxWidth: .infinity)
+            .frame(height: OptionControlMetrics.height)
+            .layoutPriority(-1)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: OptionControlMetrics.height)
+        .padding(.horizontal, Spacing.screenPadding)
+    }
+
+    private func expandCatalog() {
+        withAnimation(AppAnimation.quickSpring) {
+            isCatalogExpanded = true
+            // Always open full advanced list when changing.
+            showMore = !moreGroups.isEmpty
+        }
+        HapticManager.shared.lightImpact()
     }
 }
 
@@ -344,19 +381,18 @@ private struct DisclosureControlButton: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(minHeight: 52)
+            .frame(height: OptionControlMetrics.height)
             .padding(.horizontal, Spacing.contentPadding)
-            .padding(.vertical, Spacing.sm)
             .background(
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous)
+                Spacing.shapeSmall
                     .fill(Color.surfaceCard)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous)
+                Spacing.shapeSmall
                     .strokeBorder(Color.borderSubtle, lineWidth: 1)
             )
             .contentShape(
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous)
+                Spacing.shapeSmall
             )
         }
         .buttonStyle(PressableTileStyle())
@@ -376,28 +412,72 @@ private struct DisclosureControlButton: View {
 struct AnswerResultPanel<Content: View>: View {
     let title: String
     let accent: Color
+    /// When set, panel keeps at least this height (empty + filled banners can match).
+    var minHeight: CGFloat? = nil
+    /// Vertically center title + content inside the min-height chrome (instruction banners).
+    var verticallyCenterContent: Bool = false
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        VStack(spacing: Spacing.md) {
+        VStack(spacing: Spacing.sm) {
+            if verticallyCenterContent { Spacer(minLength: 0) }
+
             Text(title)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundColor(.inkOnAccent)
                 .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
 
             content()
+                .frame(maxWidth: .infinity, alignment: .center)
+
+            if verticallyCenterContent { Spacer(minLength: 0) }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.xl)
+        .frame(maxWidth: .infinity, minHeight: innerMinHeight, alignment: .center)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.md)
+        .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .center)
         .background(
-            RoundedRectangle(cornerRadius: Spacing.cornerRadiusMedium, style: .continuous)
+            Spacing.shapeMedium
                 .fill(accent)
-                .shadow(color: accent.opacity(0.35), radius: 12, x: 0, y: 6)
+                .shadow(color: accent.opacity(0.18), radius: 6, x: 0, y: 3)
         )
         .padding(.horizontal, Spacing.screenPadding)
-        .padding(.top, Spacing.lg)
-        .transition(.scaleAndFade)
+        .fixedSize(horizontal: false, vertical: minHeight == nil)
+        .transition(.opacity)
+    }
+
+    /// Min height for the stack inside padding so Spacers can absorb free vertical space.
+    private var innerMinHeight: CGFloat? {
+        guard let minHeight else { return nil }
+        return max(0, minHeight - Spacing.md * 2)
+    }
+}
+
+// MARK: - Canvas edge fade (soften result / controls split)
+
+/// Vertical gradient that blends content into the app canvas color.
+struct CanvasEdgeFade: View {
+    enum Edge {
+        case top
+        case bottom
+    }
+
+    var edge: Edge = .top
+    var height: CGFloat = 36
+    var color: Color = .brandBeige
+
+    var body: some View {
+        LinearGradient(
+            colors: edge == .top
+                ? [color, color.opacity(0)]
+                : [color.opacity(0), color],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .frame(height: height)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -416,7 +496,7 @@ struct InputCoachingLine: View {
     }
 }
 
-// MARK: - Root field with clear (large target)
+// MARK: - Root field (large target; use keyboard ⌫ to edit)
 
 struct RootNoteField: View {
     let placeholder: String
@@ -424,55 +504,37 @@ struct RootNoteField: View {
     let isKeyboardVisible: Bool
     let accentTint: Color
     let onToggleKeyboard: () -> Void
-    let onClear: () -> Void
 
     var body: some View {
-        HStack(spacing: Spacing.sm) {
-            Button(action: onToggleKeyboard) {
-                HStack {
-                    Text(root.isEmpty ? placeholder : root)
-                        .foregroundColor(root.isEmpty ? .inkTertiary : .inkPrimary)
-                        .font(.noteName)
+        Button(action: onToggleKeyboard) {
+            HStack {
+                Text(root.isEmpty ? placeholder : root)
+                    .foregroundColor(root.isEmpty ? .inkTertiary : .inkPrimary)
+                    .font(.noteName)
 
-                    Spacer()
+                Spacer()
 
-                    Image(systemName: isKeyboardVisible ? "keyboard.chevron.compact.down" : "keyboard")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(isKeyboardVisible ? accentTint : .inkSecondary)
-                        .frame(width: 28, height: 28)
-                }
-                .padding(.horizontal, Spacing.contentPadding)
-                .frame(minHeight: 56)
-                .background(
-                    RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous)
-                        .fill(Color.surfaceCard)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous)
-                                .strokeBorder(
-                                    isKeyboardVisible ? accentTint : Color.borderStrong,
-                                    lineWidth: isKeyboardVisible ? 2 : 1
-                                )
-                        )
-                )
-                .contentShape(RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall, style: .continuous))
+                Image(systemName: isKeyboardVisible ? "keyboard.chevron.compact.down" : "keyboard")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(isKeyboardVisible ? accentTint : .inkSecondary)
+                    .frame(width: 28, height: 28)
             }
-            .buttonStyle(PressableTileStyle())
-
-            if !root.isEmpty {
-                Button(action: {
-                    onClear()
-                    HapticManager.shared.lightImpact()
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 26))
-                        .foregroundColor(.inkTertiary)
-                        .frame(width: 48, height: 56)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(PressableTileStyle())
-                .accessibilityLabel("Clear root")
-            }
+            .padding(.horizontal, Spacing.contentPadding)
+            .frame(minHeight: 56)
+            .background(
+                Spacing.shapeSmall
+                    .fill(Color.surfaceCard)
+                    .overlay(
+                        Spacing.shapeSmall
+                            .strokeBorder(
+                                isKeyboardVisible ? accentTint : Color.borderStrong,
+                                lineWidth: isKeyboardVisible ? 2 : 1
+                            )
+                    )
+            )
+            .contentShape(Spacing.shapeSmall)
         }
+        .buttonStyle(PressableTileStyle())
         .padding(.horizontal, Spacing.screenPadding)
     }
 }

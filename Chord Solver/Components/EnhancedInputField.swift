@@ -42,7 +42,7 @@ struct EnhancedInputField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             ZStack {
-                RoundedRectangle(cornerRadius: Spacing.cornerRadiusSmall)
+                Spacing.shapeSmall
                     .foregroundColor(.interactiveActive)
                     .shadow(
                         color: shadowColor,
