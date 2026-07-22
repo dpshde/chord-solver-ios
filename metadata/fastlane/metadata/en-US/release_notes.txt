@@ -1,0 +1,9 @@
+What's new in Functional Harmony:
+
+• Notes — identify chords and intervals from note stacks
+• Ask — type natural-language queries (chords, scales, or notes) with live preview
+• Clearer Chords & Scales layout with bottom-anchored controls
+• Smarter parsing (scale queries, major-minor 7ths)
+• Design polish: consistent radii, spacing, and snappier animations
+
+Now named Functional Harmony — your desk for building and identifying harmony.

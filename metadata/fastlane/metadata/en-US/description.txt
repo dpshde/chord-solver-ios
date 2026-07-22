@@ -1,0 +1,25 @@
+Functional Harmony is a fast music theory desk for players and students.
+
+Build chords and scales from a root and quality. Identify harmony from notes. Or just Ask—type a chord, scale, or note stack in plain English and jump straight to the answer.
+
+SCALE FINDER
+• Choose a root and scale quality—major, minor, modes, pentatonic, and more
+• See every degree spelled clearly for practice and ear training
+• Perfect when you need a quick scale finder without flipping textbooks
+
+CHORD BUILDER & CHORD ID
+• Spell major, minor, sevenths, suspended, augmented, diminished, and more
+• Stack notes in the Notes tab to identify chords and intervals (reverse lookup)
+• Piano-friendly note entry with accidentals—great as a chord identifier
+
+ASK
+• Natural-language queries: “C major 7”, “F# dorian”, “C E G”
+• Live preview before you open Chords, Scales, or Notes
+• Built for homework, rehearsals, and songwriting sessions
+
+WHY FUNCTIONAL HARMONY
+• Chords, scales, and note identification in one app
+• Clean, bottom-anchored controls designed for one-handed practice
+• No accounts, no clutter—just theory when you need it
+
+Whether you call it a scale finder, chord identifier, or harmony lab, Functional Harmony keeps tonal music theory at your fingertips.

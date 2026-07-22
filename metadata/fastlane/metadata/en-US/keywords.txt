@@ -1,0 +1,1 @@
+music,theory,chords,scales,identifier,piano,guitar,triad,intervals,modes,builder,notes,major,minor
