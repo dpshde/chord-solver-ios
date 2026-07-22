@@ -1,9 +1,7 @@
-What's new in Functional Harmony:
+Functional Harmony 2.0.0 preview
 
-• Notes — identify chords and intervals from note stacks
-• Ask — type natural-language queries (chords, scales, or notes) with live preview
-• Clearer Chords & Scales layout with bottom-anchored controls
-• Smarter parsing (scale queries, major-minor 7ths)
-• Design polish: consistent radii, spacing, and snappier animations
-
-Now named Functional Harmony — your desk for building and identifying harmony.
+• System dark mode with a warm espresso palette that matches the paper light theme
+• Piano sample engine upgrade (new piano samples, smoother playback)
+• Result titles with properly superscripted flats and sharps
+• Notes: compact clear control when the pad is collapsed
+• Design polish across Chords, Scales, Notes, and Ask

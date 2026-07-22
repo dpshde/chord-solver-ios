@@ -40,6 +40,17 @@
                ReferencedContainer = "container:Functional Harmony.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D283F3D9262CCDF70069AF23"
+               BuildableName = "Functional HarmonyUITests.xctest"
+               BlueprintName = "Functional HarmonyUITests"
+               ReferencedContainer = "container:Functional Harmony.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

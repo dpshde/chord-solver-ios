@@ -119,7 +119,9 @@ private func parseNotesAnswer(_ raw: String, noteCount: Int) -> NotesParsedResul
 
 struct NotesTheoryView: View {
     @EnvironmentObject private var session: NotesSessionState
-    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = false
+    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = RootNotePadLayout.defaultUsesCalculator
+    /// Shared with Chords/Scales — result sound toggle.
+    @AppStorage(PianoSamplePlayer.soundEnabledKey) private var soundEnabled = true
     @State private var enableLayoutAnimations = false
 
     private let gap: CGFloat = 10
@@ -140,6 +142,11 @@ struct NotesTheoryView: View {
         !session.notes.isEmpty
     }
 
+    /// Interval (2) or chord stack (3–4) — enough notes to hear the typed set.
+    private var canPlayNotes: Bool {
+        session.notes.count >= 2
+    }
+
     private var panelAccent: Color {
         if parsed.isSuccess { return .brandNotes }
         if parsed.isPlaceholder { return Color.brandNotes.opacity(0.45) }
@@ -158,7 +165,12 @@ struct NotesTheoryView: View {
         LandscapeResultContainer(hasResult: parsed.isSuccess) { size in
             portraitLayout(height: size.height)
         } landscape: {
-            FullscreenAnswerView(title: parsed.title, accent: .brandNotes) {
+            FullscreenAnswerView(
+                title: parsed.title,
+                accent: .brandNotes,
+                isSoundOn: canPlayNotes ? $soundEnabled : nil,
+                onPlayTap: canPlayNotes ? playTypedNotes : nil
+            ) {
                 VStack(spacing: Spacing.md) {
                     notesRow(chipHeight: 96)
                     if let detail = parsed.detail, !detail.isEmpty {
@@ -174,6 +186,21 @@ struct NotesTheoryView: View {
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: showResult)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: useCalculator)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: session.notes.count)
+        // Autoplay when the typed stack becomes playable or changes (sound on).
+        .onChange(of: session.notes) { _, notes in
+            guard soundEnabled, notes.count >= 2 else {
+                if PianoSamplePlayer.shared.isPlaying {
+                    PianoSamplePlayer.shared.stop()
+                }
+                return
+            }
+            playTypedNotes()
+        }
+        .onDisappear {
+            if PianoSamplePlayer.shared.isPlaying {
+                PianoSamplePlayer.shared.stop()
+            }
+        }
         .onAppear {
             DispatchQueue.main.async { enableLayoutAnimations = true }
         }
@@ -189,12 +216,12 @@ struct NotesTheoryView: View {
                 resultBand
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                Spacer(minLength: 0)
+                EmptyResultWordmark()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             controlsBand
         }
-        .padding(.top, showResult ? 0 : Spacing.sm)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 
@@ -204,7 +231,9 @@ struct NotesTheoryView: View {
                 title: parsed.title,
                 accent: panelAccent,
                 expandsToFill: true,
-                bleedTopSafeArea: true
+                bleedTopSafeArea: true,
+                isSoundOn: canPlayNotes ? $soundEnabled : nil,
+                onPlayTap: canPlayNotes ? playTypedNotes : nil
             ) {
                 VStack(spacing: Spacing.sm) {
                     notesRow(chipHeight: 72)
@@ -226,7 +255,7 @@ struct NotesTheoryView: View {
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundColor(.inkOnAccent.opacity(0.75))
                 Spacer()
-                Text("Clear / ⌫ or tap note")
+                Text(canPlayNotes ? "Tap to play · Clear / ⌫ or tap note" : "Clear / ⌫ or tap note")
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundColor(.inkOnAccent.opacity(0.7))
             }
@@ -234,6 +263,17 @@ struct NotesTheoryView: View {
             .padding(.bottom, Spacing.md)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Harmonic playback of the typed pitch classes (interval = 2 notes, chord = 3–4).
+    private func playTypedNotes() {
+        guard soundEnabled else { return }
+        let pitchClasses = session.notes
+            .map { MusicPitch.normalizePitchClass($0) }
+            .filter { !$0.isEmpty && MusicPitch.semitone(of: $0) != nil }
+        guard pitchClasses.count >= 2 else { return }
+        HapticManager.shared.lightImpact()
+        PianoSamplePlayer.shared.playChord(pitchClasses: pitchClasses)
     }
 
     /// Intrinsic height — Notes + pad always fully visible; result expands above.
@@ -281,9 +321,18 @@ struct NotesTheoryView: View {
             }
         }
         .animation(AppAnimation.quickSpring, value: useCalculator)
+        .contentShape(Rectangle())
+        .notePadSwipeLayout(
+            useCalculator: $useCalculator,
+            onSwipeDownWhenCollapsed: {
+                withAnimation(AppAnimation.quickSpring) { session.backspace() }
+            }
+        )
+        .accessibilityHint("Swipe up for calculator pad, swipe down to collapse or backspace")
     }
 
-    /// Linear (like Chords/Scales): ♭ · ♯ · Clear · layout · ⌫
+    /// Linear (collapsed): ♭ · ♯ · × · layout · ⌫
+    /// Compact × instead of “Clear” — the util row is tight when the pad is collapsed.
     private var linearUtilRow: some View {
         HStack(spacing: gap) {
             padKey(
@@ -306,12 +355,14 @@ struct NotesTheoryView: View {
 
             utilKey(
                 title: "Clear",
+                systemImage: "xmark",
                 fill: session.canEditLast ? clearKeyFill : Color.backspaceIdle,
                 ink: session.canEditLast ? .inkOnAccent : .inkTertiary,
                 enabled: session.canEditLast
             ) {
                 withAnimation(AppAnimation.quickSpring) { session.clear() }
             }
+            .frame(maxWidth: 72)
 
             Spacer(minLength: 8)
 
@@ -436,30 +487,40 @@ struct NotesTheoryView: View {
                         .fill(Color.surfaceCard.opacity(0.55))
                         .overlay(
                             Spacing.shapeMedium
-                                .strokeBorder(Color.black.opacity(0.1), lineWidth: 1)
+                                .strokeBorder(Color.borderSubtle, lineWidth: 1)
                         )
                 )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(useCalculator ? "Switch to linear note row" : "Switch to calculator pad")
+        .accessibilityHint("Or swipe down to collapse, swipe up to expand")
     }
 
     // MARK: Keys
 
     private func utilKey(
         title: String,
+        systemImage: String? = nil,
         fill: Color,
         ink: Color,
         enabled: Bool,
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
-                .foregroundColor(ink)
-                .frame(maxWidth: .infinity)
-                .frame(maxHeight: .infinity)
-                .background(Spacing.shapeMedium.fill(fill))
+            Group {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 18, weight: .semibold))
+                        .imageScale(.medium)
+                } else {
+                    Text(title)
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                }
+            }
+            .foregroundColor(ink)
+            .frame(maxWidth: .infinity)
+            .frame(maxHeight: .infinity)
+            .background(Spacing.shapeMedium.fill(fill))
         }
         .buttonStyle(CalcPressStyle())
         .disabled(!enabled)
@@ -490,7 +551,7 @@ struct NotesTheoryView: View {
                         .fill(fill)
                         .overlay(
                             Spacing.shapeMedium
-                                .strokeBorder(Color.black.opacity(0.1), lineWidth: 1)
+                                .strokeBorder(Color.borderSubtle, lineWidth: 1)
                         )
                 )
         }

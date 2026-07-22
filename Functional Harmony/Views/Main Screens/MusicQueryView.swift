@@ -87,19 +87,11 @@ struct MusicQueryView: View {
 
     // MARK: - Heroes
 
-    /// Idle: big ASK on brand aqua — one statement, no clutter.
+    /// Idle: brand wordmark on canvas — no accent chrome until a match appears.
     private var emptyHero: some View {
-        AnswerResultPanel(
-            title: "Ask",
-            accent: .brandAqua,
-            verticallyCenterContent: true,
-            expandsToFill: true,
-            bleedTopSafeArea: true
-        ) {
-            EmptyView()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityLabel("Ask. Type a chord, scale, or notes.")
+        EmptyResultWordmark()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityLabel("Functional Harmony. Type a chord, scale, or notes.")
     }
 
     private func resultBand(_ match: MusicQueryMatch) -> some View {
@@ -195,7 +187,7 @@ struct MusicQueryView: View {
 
     private var controlsBand: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Query")
+            Text("Type anything music")
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundColor(.inkSecondary)
                 .textCase(.uppercase)
@@ -219,14 +211,22 @@ struct MusicQueryView: View {
 
     private var searchField: some View {
         HStack(spacing: Spacing.sm) {
-            TextField("C major 7…", text: $query)
-                .font(.system(size: 22, weight: .semibold, design: .rounded))
-                .foregroundColor(.inkPrimary)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .focused($fieldFocused)
-                .submitLabel(.go)
-                .onSubmit { submit() }
+            // Explicit prompt color — system placeholder defaults to near-white and
+            // vanishes on the light surfaceCard field in light mode.
+            TextField(
+                "",
+                text: $query,
+                prompt: Text("C major 7…")
+                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                    .foregroundColor(.inkSecondary)
+            )
+            .font(.system(size: 22, weight: .semibold, design: .rounded))
+            .foregroundColor(.inkPrimary)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .focused($fieldFocused)
+            .submitLabel(.go)
+            .onSubmit { submit() }
 
             if !query.isEmpty {
                 Button {
@@ -245,13 +245,6 @@ struct MusicQueryView: View {
         .background(
             Spacing.shapeMedium
                 .fill(Color.surfaceCard)
-                .overlay(
-                    Spacing.shapeMedium
-                        .strokeBorder(
-                            fieldFocused || canSubmit ? activeAccent : Color.borderStrong,
-                            lineWidth: fieldFocused || canSubmit ? 2.5 : 1
-                        )
-                )
         )
     }
 

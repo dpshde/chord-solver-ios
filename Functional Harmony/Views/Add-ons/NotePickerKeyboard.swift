@@ -147,7 +147,7 @@ struct NoteButton: View {
                     Spacing.shapeSmall
                         .fill(backgroundColor)
                         .shadow(
-                            color: Color.black.opacity(isPressed ? 0.3 : 0.1),
+                            color: Color.shadowSoft.opacity(isPressed ? 1.0 : 0.55),
                             radius: isPressed ? 2 : 4,
                             x: 0,
                             y: isPressed ? 1 : 2

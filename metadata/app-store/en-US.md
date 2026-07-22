@@ -1,6 +1,6 @@
 # Functional Harmony — App Store Connect Metadata (en-US)
 
-Ready-to-paste copy for **Apple ID `1564025162`**, version **1.2.4** (Prepare for Submission).
+Ready-to-paste copy for **Apple ID `1564025162`**, version **2.0.0** (preview) (Prepare for Submission).
 
 Validated against:
 

@@ -67,6 +67,16 @@ enum MainSectionTab: Int, CaseIterable, Hashable, Identifiable {
         if title == "Vivace" { return .notes }
         return nil
     }
+
+    /// Ordered tab to the left (nil at first section).
+    var previous: MainSectionTab? {
+        MainSectionTab(rawValue: rawValue - 1)
+    }
+
+    /// Ordered tab to the right (nil at last section).
+    var next: MainSectionTab? {
+        MainSectionTab(rawValue: rawValue + 1)
+    }
 }
 
 // MARK: - Interval session (legacy support for IntervalView if linked elsewhere)
@@ -133,6 +143,12 @@ struct MainTabView: View {
         .environmentObject(scalesVM)
         .environmentObject(notesSession)
         .tint(selectedTab.tintColor)
+        // Edge-only so center vertical pad swipes and scrolling stay free.
+        .overlay {
+            if !landscapeResultFullscreen {
+                TabEdgeSwipeOverlay(selectedTab: $selectedTab)
+            }
+        }
         .onPreferenceChange(LandscapeResultFullscreenKey.self) { landscapeResultFullscreen = $0 }
         .toolbar(landscapeResultFullscreen ? .hidden : .automatic, for: .tabBar)
         .onAppear {
@@ -145,6 +161,90 @@ struct MainTabView: View {
             // Clear stale fullscreen preference when switching sections.
             landscapeResultFullscreen = false
         }
+        .accessibilityHint("Swipe from the left or right edge to switch sections")
+    }
+}
+
+// MARK: - Edge swipe between tabs
+
+/// Invisible hit zones on the screen edges for horizontal tab navigation.
+/// - Swipe right from the left edge → previous tab
+/// - Swipe left from the right edge → next tab
+private struct TabEdgeSwipeOverlay: View {
+    @Binding var selectedTab: MainSectionTab
+
+    /// Wide enough to grab from slightly in from the bezel; still leaves pad/content free.
+    private let edgeWidth: CGFloat = 36
+    private let minDistance: CGFloat = 24
+    private let minHorizontal: CGFloat = 56
+    private let horizontalDominance: CGFloat = 1.2
+
+    var body: some View {
+        HStack(spacing: 0) {
+            edgeStrip(leading: true)
+            Spacer(minLength: 0)
+            edgeStrip(leading: false)
+        }
+        .allowsHitTesting(true)
+        // Don’t block layout or painting of the tab content underneath.
+        .accessibilityHidden(true)
+    }
+
+    private func edgeStrip(leading: Bool) -> some View {
+        Color.clear
+            .frame(width: edgeWidth)
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
+            // High priority so edge drags win over nested gestures near the bezel.
+            .highPriorityGesture(
+                DragGesture(minimumDistance: minDistance, coordinateSpace: .global)
+                    .onEnded { value in
+                        handleSwipe(value, leadingEdge: leading)
+                    }
+            )
+    }
+
+    private func handleSwipe(_ value: DragGesture.Value, leadingEdge: Bool) {
+        let dx = value.translation.width
+        let dy = value.translation.height
+        guard abs(dx) >= minHorizontal else { return }
+        guard abs(dx) >= abs(dy) * horizontalDominance else { return }
+
+        // Leading edge: expect swipe right (dx > 0) → previous.
+        // Trailing edge: expect swipe left (dx < 0) → next.
+        // Also accept the matching direction from either edge for forgiveness.
+        let goPrevious = dx > 0
+        let goNext = dx < 0
+
+        if leadingEdge {
+            // Prefer previous when swiping inward from the left; still allow next if
+            // the user dragged the wrong way on that edge.
+            if goPrevious {
+                navigate(to: selectedTab.previous)
+            } else if goNext {
+                navigate(to: selectedTab.next)
+            }
+        } else {
+            if goNext {
+                navigate(to: selectedTab.next)
+            } else if goPrevious {
+                navigate(to: selectedTab.previous)
+            }
+        }
+    }
+
+    private func navigate(to tab: MainSectionTab?) {
+        guard let tab, tab != selectedTab else {
+            // Soft reject at ends (Chords← or →Ask).
+            if tab == nil {
+                HapticManager.shared.rigidImpact()
+            }
+            return
+        }
+        withAnimation(AppAnimation.smoothSpring) {
+            selectedTab = tab
+        }
+        // Haptic also fires from MainTabView.onChange(of: selectedTab).
     }
 }
 
@@ -217,6 +317,13 @@ struct MusicQueryContainerView: View {
 
 struct MainTabView_Previews: PreviewProvider {
     static var previews: some View {
-        MainTabView()
+        Group {
+            MainTabView()
+                .preferredColorScheme(.light)
+                .previewDisplayName("Light")
+            MainTabView()
+                .preferredColorScheme(.dark)
+                .previewDisplayName("Dark")
+        }
     }
 }

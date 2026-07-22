@@ -422,6 +422,8 @@ struct AnswerResultPanel<Content: View>: View {
     var isSoundOn: Binding<Bool>? = nil
     /// Invoked when the user taps the result surface (not the sound toggle). Gated by `isSoundOn` at call sites.
     var onPlayTap: (() -> Void)? = nil
+    /// When true, shows the loop-mode toggle beside the play indicator (scales).
+    var showsLoopToggle: Bool = false
     @ViewBuilder let content: () -> Content
 
     private var centersContent: Bool {
@@ -439,14 +441,12 @@ struct AnswerResultPanel<Content: View>: View {
 
                 // Title + body stay a tight unit (no spacer between them).
                 VStack(spacing: Spacing.sm) {
-                    Text(title.uppercased())
-                        .font(expandsToFill ? .resultTitleHero : .resultTitle)
-                        .foregroundColor(.inkOnAccent)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.45)
-                        .tracking(1.0)
-                        .frame(maxWidth: .infinity)
+                    ResultTitleText(
+                        title: title,
+                        scale: expandsToFill ? .hero : .compact
+                    )
+                    .foregroundColor(.inkOnAccent)
+                    .frame(maxWidth: .infinity)
 
                     content()
                         .frame(maxWidth: .infinity, alignment: .center)
@@ -471,17 +471,17 @@ struct AnswerResultPanel<Content: View>: View {
         .overlay(alignment: .topLeading) {
             if let isSoundOn {
                 ResultSoundToggle(isOn: isSoundOn)
-                    .padding(.leading, Spacing.screenPadding)
-                    .padding(.top, Spacing.sm)
+                    // Pull slightly into the margin so the 48pt hit box reaches the corner.
+                    .padding(.leading, max(0, Spacing.screenPadding - 6))
+                    .padding(.top, max(0, Spacing.sm - 4))
             }
         }
         .overlay(alignment: .topTrailing) {
-            // Hide play indicator while muted — result taps also produce no audio.
+            // Hide play chrome while muted — result taps also produce no audio.
             if isPlayable, let isSoundOn, isSoundOn.wrappedValue {
-                ResultPlayIndicator()
-                    .padding(.trailing, Spacing.screenPadding)
-                    .padding(.top, Spacing.sm)
-                    .allowsHitTesting(false)
+                ResultPlaybackChrome(showsLoopToggle: showsLoopToggle, onPlayTap: onPlayTap)
+                    .padding(.trailing, max(0, Spacing.screenPadding - 6))
+                    .padding(.top, max(0, Spacing.sm - 4))
             }
         }
         .background {
@@ -506,7 +506,13 @@ struct AnswerResultPanel<Content: View>: View {
 
 // MARK: - Result chrome controls
 
-/// Compact speaker control for playable chord/scale result chrome (top-left).
+/// Shared hit target for result chrome buttons (icon stays ~18pt; pad is HIG-friendly).
+private enum ResultChromeMetrics {
+    static let hitSize: CGFloat = 48
+    static let iconSize: CGFloat = 18
+}
+
+/// Speaker control for playable chord/scale result chrome (top-left).
 struct ResultSoundToggle: View {
     @Binding var isOn: Bool
 
@@ -519,9 +525,9 @@ struct ResultSoundToggle: View {
             HapticManager.shared.selectionChanged()
         } label: {
             Image(systemName: isOn ? "speaker.wave.2.fill" : "speaker.slash.fill")
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: ResultChromeMetrics.iconSize, weight: .semibold))
                 .foregroundColor(.inkOnAccent)
-                .frame(width: 36, height: 36)
+                .frame(width: ResultChromeMetrics.hitSize, height: ResultChromeMetrics.hitSize)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -531,20 +537,66 @@ struct ResultSoundToggle: View {
     }
 }
 
-/// Top-right play activity indicator for result chrome (shown only when sound is on).
-struct ResultPlayIndicator: View {
+/// Top-right play control / activity indicator (shown only when sound is on).
+/// No spring animation — state must snap with the audio onset/release grid.
+struct ResultPlayButton: View {
     @ObservedObject private var player = PianoSamplePlayer.shared
+    var onPlayTap: (() -> Void)?
 
     var body: some View {
-        Image(systemName: player.isPlaying ? "waveform" : "play.fill")
-            .font(.system(size: 16, weight: .semibold))
-            .foregroundColor(.inkOnAccent.opacity(player.isPlaying ? 1 : 0.85))
-            .frame(width: 36, height: 36)
-            .scaleEffect(player.isPlaying ? 1.06 : 1.0)
-            .animation(AppAnimation.quickSpring, value: player.isPlaying)
-            .accessibilityLabel(player.isPlaying ? "Playing" : "Ready to play")
-            .accessibilityHidden(false)
-            .allowsHitTesting(false)
+        Button {
+            onPlayTap?()
+        } label: {
+            Image(systemName: player.isPlaying ? "waveform" : "play.fill")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.inkOnAccent.opacity(player.isPlaying ? 1 : 0.85))
+                .frame(width: ResultChromeMetrics.hitSize, height: ResultChromeMetrics.hitSize)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(onPlayTap == nil)
+        .accessibilityLabel(player.isPlaying ? "Playing" : "Play result")
+        .accessibilityHint("Plays the result")
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+/// Loop-mode toggle + play control for scale result chrome.
+/// Loop is a mode switch for the play surface — it never starts or stops audio by itself.
+struct ResultPlaybackChrome: View {
+    @ObservedObject private var player = PianoSamplePlayer.shared
+    var showsLoopToggle: Bool = false
+    var onPlayTap: (() -> Void)? = nil
+
+    var body: some View {
+        HStack(spacing: 0) {
+            if showsLoopToggle {
+                Button {
+                    player.toggleLoopEnabled()
+                    HapticManager.shared.selectionChanged()
+                } label: {
+                    Image(systemName: "repeat")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.inkOnAccent.opacity(player.isLoopEnabled ? 1 : 0.8))
+                        .frame(width: ResultChromeMetrics.hitSize, height: ResultChromeMetrics.hitSize)
+                        .background {
+                            if player.isLoopEnabled {
+                                Circle()
+                                    .fill(Color.inkOnAccent.opacity(0.24))
+                                    .frame(width: 36, height: 36)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .animation(AppAnimation.quickSpring, value: player.isLoopEnabled)
+                .accessibilityLabel("Loop scale up and back")
+                .accessibilityValue(player.isLoopEnabled ? "On" : "Off")
+                .accessibilityHint("When on, play runs the scale up then back once")
+                .accessibilityAddTraits(.isButton)
+            }
+            ResultPlayButton(onPlayTap: onPlayTap)
+        }
     }
 }
 
@@ -569,6 +621,8 @@ struct FullscreenAnswerView<Content: View>: View {
     /// When set, shows a top-leading sound toggle and enables tap-to-play on the rest of the surface.
     var isSoundOn: Binding<Bool>? = nil
     var onPlayTap: (() -> Void)? = nil
+    /// When true, shows the loop-mode toggle beside the play indicator (scales).
+    var showsLoopToggle: Bool = false
     @ViewBuilder let content: () -> Content
 
     private var isPlayable: Bool {
@@ -580,13 +634,8 @@ struct FullscreenAnswerView<Content: View>: View {
             accent.ignoresSafeArea()
 
             VStack(spacing: Spacing.xl) {
-                Text(title.uppercased())
-                    .font(.resultTitleFullscreen)
+                ResultTitleText(title: title, scale: .fullscreen)
                     .foregroundColor(.inkOnAccent)
-                    .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.35)
-                    .lineLimit(2)
-                    .tracking(1.5)
                     .padding(.horizontal, Spacing.lg)
 
                 content()
@@ -607,16 +656,15 @@ struct FullscreenAnswerView<Content: View>: View {
         .overlay(alignment: .topLeading) {
             if let isSoundOn {
                 ResultSoundToggle(isOn: isSoundOn)
-                    .padding(.leading, Spacing.lg)
-                    .padding(.top, Spacing.md)
+                    .padding(.leading, max(0, Spacing.lg - 6))
+                    .padding(.top, max(0, Spacing.md - 4))
             }
         }
         .overlay(alignment: .topTrailing) {
             if isPlayable, let isSoundOn, isSoundOn.wrappedValue {
-                ResultPlayIndicator()
-                    .padding(.trailing, Spacing.lg)
-                    .padding(.top, Spacing.md)
-                    .allowsHitTesting(false)
+                ResultPlaybackChrome(showsLoopToggle: showsLoopToggle, onPlayTap: onPlayTap)
+                    .padding(.trailing, max(0, Spacing.lg - 6))
+                    .padding(.top, max(0, Spacing.md - 4))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -699,6 +747,33 @@ struct InputCoachingLine: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Spacing.screenPadding)
             .padding(.top, Spacing.sm)
+    }
+}
+
+// MARK: - Empty result wordmark
+
+/// Brand wordmark shown in the result-banner slot when there is no answer yet.
+/// Right-justified condensed title on the app canvas — no accent chrome.
+struct EmptyResultWordmark: View {
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 0) {
+            Text("FUNCTIONAL")
+            Text("HARMONY")
+        }
+        .font(.emptyResultWordmark)
+        .foregroundColor(.inkPrimary)
+        .multilineTextAlignment(.trailing)
+        .lineLimit(1)
+        .minimumScaleFactor(0.45)
+        .tracking(1.2)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+        .padding(.horizontal, Spacing.screenPadding)
+        .padding(.vertical, Spacing.md)
+        .background {
+            Color.brandBeige.ignoresSafeArea(edges: .top)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Functional Harmony")
     }
 }
 

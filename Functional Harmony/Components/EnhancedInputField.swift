@@ -95,7 +95,7 @@ struct EnhancedInputField: View {
     private var shadowColor: Color {
         switch validationState {
         case .neutral:
-            return Color.black.opacity(0.1)
+            return Color.shadowSoft
         case .valid:
             return Color.success.opacity(0.3)
         case .invalid:

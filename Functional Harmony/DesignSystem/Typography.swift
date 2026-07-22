@@ -80,6 +80,9 @@ extension Font {
     /// Full-bleed landscape answer title.
     static let resultTitleFullscreen = Font.custom(primaryTitleFamily, size: 72)
 
+    /// Empty-result brand wordmark (right-justified “FUNCTIONAL / HARMONY”).
+    static let emptyResultWordmark = Font.custom(primaryTitleFamily, size: 64)
+
     // MARK: Alt display (Space Grotesk)
 
     /// Alternate display title — use when mixed-case readability matters more than condensed impact.
@@ -98,6 +101,101 @@ extension Font {
     /// Returns a scaled version of the font that respects Dynamic Type
     static func scaled(_ font: Font, relativeTo textStyle: Font.TextStyle = .body) -> Font {
         return font
+    }
+}
+
+// MARK: - Result title with superscripted accidentals
+
+/// Bebas Neue has no musical accidentals; fallback glyphs sit full-size on the
+/// baseline and look wrong next to the letter. Render ♭/♯ smaller and raised.
+enum ResultTitleScale {
+    case compact
+    case hero
+    case fullscreen
+
+    var font: Font {
+        switch self {
+        case .compact: return .resultTitle
+        case .hero: return .resultTitleHero
+        case .fullscreen: return .resultTitleFullscreen
+        }
+    }
+
+    var pointSize: CGFloat {
+        switch self {
+        case .compact: return 30
+        case .hero: return 44
+        case .fullscreen: return 72
+        }
+    }
+
+    /// Accidental glyph size relative to the letter (engraving-ish).
+    var accidentalSize: CGFloat { pointSize * 0.58 }
+
+    /// Raise so the accidental reads as a superscript on the pitch letter.
+    var accidentalBaseline: CGFloat { pointSize * 0.26 }
+
+    var tracking: CGFloat {
+        switch self {
+        case .compact, .hero: return 1.0
+        case .fullscreen: return 1.5
+        }
+    }
+
+    var minimumScaleFactor: CGFloat {
+        switch self {
+        case .compact, .hero: return 0.45
+        case .fullscreen: return 0.35
+        }
+    }
+}
+
+struct ResultTitleText: View {
+    let title: String
+    var scale: ResultTitleScale = .hero
+
+    var body: some View {
+        composed
+            .font(scale.font)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+            .minimumScaleFactor(scale.minimumScaleFactor)
+            .tracking(scale.tracking)
+            .accessibilityLabel(title)
+    }
+
+    /// Letter runs uppercased for Bebas; accidentals stay unicode and superscripted.
+    private var composed: Text {
+        var result = Text("")
+        var run = ""
+
+        func flushRun() {
+            guard !run.isEmpty else { return }
+            result = result + Text(run.uppercased())
+            run = ""
+        }
+
+        for character in title {
+            if Self.isAccidental(character) {
+                flushRun()
+                result = result + Text(String(character))
+                    .font(.system(size: scale.accidentalSize, weight: .semibold, design: .default))
+                    .baselineOffset(scale.accidentalBaseline)
+            } else {
+                run.append(character)
+            }
+        }
+        flushRun()
+        return result
+    }
+
+    private static func isAccidental(_ character: Character) -> Bool {
+        switch character {
+        case "♭", "♯", "♮", "𝄪", "𝄫":
+            return true
+        default:
+            return false
+        }
     }
 }
 

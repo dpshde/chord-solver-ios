@@ -10,6 +10,9 @@
 		AA47A0D12E9A00010001A002 /* MusicPitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A001 /* MusicPitch.swift */; };
 		AA47A0D12E9A00010001A004 /* NoteVoicing.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A003 /* NoteVoicing.swift */; };
 		AA47A0D12E9A00010001A006 /* PianoSamplePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A005 /* PianoSamplePlayer.swift */; };
+		AA47A0D12E9A00010001A011 /* PianoSampleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A010 /* PianoSampleStore.swift */; };
+		AA47A0D12E9A00010001A013 /* PianoVoice.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A012 /* PianoVoice.swift */; };
+		AA47A0D12E9A00010001A015 /* PianoEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A014 /* PianoEngine.swift */; };
 		AA47A0D12E9A00010001A009 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A008 /* Samples */; };
 		AA47DC312E970000009B1967 /* SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA47DC302E970000009B1967 /* SpaceGrotesk-Bold.ttf */; };
 		AA47DC352E970000009B1969 /* BebasNeue-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA47DC362E970000009B1969 /* BebasNeue-Regular.ttf */; };
@@ -97,6 +100,9 @@
 		AA47A0D12E9A00010001A001 /* MusicPitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPitch.swift; sourceTree = "<group>"; };
 		AA47A0D12E9A00010001A003 /* NoteVoicing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteVoicing.swift; sourceTree = "<group>"; };
 		AA47A0D12E9A00010001A005 /* PianoSamplePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSamplePlayer.swift; sourceTree = "<group>"; };
+		AA47A0D12E9A00010001A010 /* PianoSampleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSampleStore.swift; sourceTree = "<group>"; };
+		AA47A0D12E9A00010001A012 /* PianoVoice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoVoice.swift; sourceTree = "<group>"; };
+		AA47A0D12E9A00010001A014 /* PianoEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoEngine.swift; sourceTree = "<group>"; };
 		AA47A0D12E9A00010001A008 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
 		AA47DC302E970000009B1967 /* SpaceGrotesk-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Bold.ttf"; sourceTree = "<group>"; };
 		AA47DC362E970000009B1969 /* BebasNeue-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BebasNeue-Regular.ttf"; sourceTree = "<group>"; };
@@ -282,6 +288,9 @@
 				AA47A0D12E9A00010001A001 /* MusicPitch.swift */,
 				AA47A0D12E9A00010001A003 /* NoteVoicing.swift */,
 				AA47A0D12E9A00010001A005 /* PianoSamplePlayer.swift */,
+				AA47A0D12E9A00010001A010 /* PianoSampleStore.swift */,
+				AA47A0D12E9A00010001A012 /* PianoVoice.swift */,
+				AA47A0D12E9A00010001A014 /* PianoEngine.swift */,
 				AA47A0D12E9A00010001A008 /* Samples */,
 			);
 			path = Audio;
@@ -532,6 +541,9 @@
 				AA47A0D12E9A00010001A002 /* MusicPitch.swift in Sources */,
 				AA47A0D12E9A00010001A004 /* NoteVoicing.swift in Sources */,
 				AA47A0D12E9A00010001A006 /* PianoSamplePlayer.swift in Sources */,
+				AA47A0D12E9A00010001A011 /* PianoSampleStore.swift in Sources */,
+				AA47A0D12E9A00010001A013 /* PianoVoice.swift in Sources */,
+				AA47A0D12E9A00010001A015 /* PianoEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -720,7 +732,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.3;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.dpstudios.Chord-Solver";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -743,7 +755,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.3;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.dpstudios.Chord-Solver";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

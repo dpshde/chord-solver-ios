@@ -408,6 +408,29 @@ final class Functional_HarmonyTests: XCTestCase {
         XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "Bb", octave: 2), "As2")
     }
 
+    /// Notes pad uses unicode accidentals; playback maps them to #/b sample keys.
+    func testMusicPitchNormalizesUnicodeAccidentals() {
+        XCTAssertEqual(MusicPitch.normalizePitchClass("C♯"), "C#")
+        XCTAssertEqual(MusicPitch.normalizePitchClass("E♭"), "Eb")
+        XCTAssertEqual(MusicPitch.semitone(of: "C♯"), MusicPitch.semitone(of: "C#"))
+        XCTAssertEqual(MusicPitch.semitone(of: "B♭"), MusicPitch.semitone(of: "Bb"))
+        XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "D♭", octave: 3), "Cs3")
+        XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "F♯", octave: 2), "Fs2")
+    }
+
+    /// Typed Notes stacks voice like chords (close position, in sample range).
+    func testTypedNotesStackVoicesAsChord() {
+        let keys = NoteVoicing.chordSampleKeys(pitchClasses: ["C", "E♭", "G"])
+        XCTAssertEqual(keys.count, 3)
+        for key in keys {
+            assertSampleKeyInA1ToC5(key)
+        }
+        let midis = keys.compactMap(midiFromSampleKey)
+        XCTAssertEqual(midis.count, 3)
+        XCTAssertLessThan(midis[0], midis[1])
+        XCTAssertLessThan(midis[1], midis[2])
+    }
+
     func testChordVoicingStaysWithinSampleRange() {
         let keys = NoteVoicing.chordSampleKeys(pitchClasses: ["C", "E", "G"])
         XCTAssertEqual(keys.count, 3)
@@ -447,6 +470,32 @@ final class Functional_HarmonyTests: XCTestCase {
                       "E# should surface as F sample in keys \(keys)")
     }
 
+    /// Up-and-back: ascend, top tonic once, then descend without re-climbing.
+    func testScaleUpAndBackHitsTopTonicOnceThenDescends() {
+        let degrees = ["C", "D", "E", "F", "G", "A", "B"]
+        let pair = NoteVoicing.scaleUpAndBack(pitchClasses: degrees)
+        // 7 up + 1 peak + 7 down
+        XCTAssertEqual(pair.pitchClasses.count, 15)
+        XCTAssertEqual(pair.sampleKeys.count, 15)
+        XCTAssertEqual(pair.pitchClasses, degrees + ["C"] + degrees.reversed())
+
+        let midis = pair.sampleKeys.compactMap(midiFromSampleKey)
+        XCTAssertEqual(midis.count, 15)
+        // Strictly ascending through the peak (index 7), then strictly descending.
+        for i in 1...7 {
+            XCTAssertLessThan(midis[i - 1], midis[i], "ascent/peak must rise: \(pair.sampleKeys)")
+        }
+        for i in 8..<midis.count {
+            XCTAssertGreaterThan(midis[i - 1], midis[i], "descent must fall: \(pair.sampleKeys)")
+        }
+        // Peak is the unique highest MIDI and matches the root pitch class.
+        let peak = midis[7]
+        XCTAssertEqual(peak, midis.max())
+        XCTAssertEqual(pair.sampleKeys[7].first, "C")
+        // Start and end share the same low tonic sample.
+        XCTAssertEqual(pair.sampleKeys.first, pair.sampleKeys.last)
+    }
+
     func testEmptyPitchClassesProduceNoSampleKeys() {
         XCTAssertTrue(NoteVoicing.chordSampleKeys(pitchClasses: []).isEmpty)
         XCTAssertTrue(NoteVoicing.scaleSampleKeys(pitchClasses: ["", "  "]).isEmpty)
@@ -460,7 +509,7 @@ final class Functional_HarmonyTests: XCTestCase {
         assertSampleKeyInA1ToC5(keys[0])
     }
 
-    /// Chord gain must fall as note count rises so summed level stays even.
+    /// Chord pre-gain is gentle 1/√n (limiter handles peaks on the master bus).
     func testChordMixGainScalesWithNoteCount() {
         let g1 = PianoSamplePlayer.chordMixGain(noteCount: 1)
         let g2 = PianoSamplePlayer.chordMixGain(noteCount: 2)
@@ -469,20 +518,18 @@ final class Functional_HarmonyTests: XCTestCase {
         let g5 = PianoSamplePlayer.chordMixGain(noteCount: 5)
 
         XCTAssertEqual(g1, 1.0, accuracy: 0.001)
+        XCTAssertEqual(g2, Float(1.0 / sqrt(2.0)), accuracy: 0.001)
+        XCTAssertEqual(g3, Float(1.0 / sqrt(3.0)), accuracy: 0.001)
+        XCTAssertEqual(g4, Float(1.0 / sqrt(4.0)), accuracy: 0.001)
+        XCTAssertEqual(g5, Float(1.0 / sqrt(5.0)), accuracy: 0.001)
+
         XCTAssertLessThan(g2, g1)
         XCTAssertLessThan(g3, g2)
         XCTAssertLessThan(g4, g3)
         XCTAssertLessThan(g5, g4)
 
-        // Stay within sensible bounds for teaching-app loudness.
-        XCTAssertGreaterThanOrEqual(g3, 0.30)
-        XCTAssertLessThanOrEqual(g3, 0.75)
-        XCTAssertGreaterThanOrEqual(g4, 0.30)
-        XCTAssertLessThanOrEqual(g4, 0.65)
-
-        // Stricter than pure 1/√n alone would not require — at least not louder than energy scale.
-        XCTAssertLessThanOrEqual(g3, Float(1.0 / sqrt(3.0)) + 0.02)
-        XCTAssertLessThanOrEqual(g4, Float(1.0 / sqrt(4.0)) + 0.02)
+        // Engine helper matches the public pre-gain.
+        XCTAssertEqual(PianoEngine.chordPreGain(noteCount: 3), g3, accuracy: 0.0001)
     }
 
     func testMixGainAliasMatchesChordMixGainForSimultaneous() {

@@ -52,7 +52,7 @@ struct FeatureButton: View {
                 Spacing.shapeChip
                     .foregroundColor(isSelected ? activeColor : inactiveColor)
                     .shadow(
-                        color: isSelected ? Color.black.opacity(0.2) : Color.clear,
+                        color: isSelected ? Color.shadowSoft : Color.clear,
                         radius: isSelected ? 4 : 0,
                         x: 0,
                         y: isSelected ? 2 : 0

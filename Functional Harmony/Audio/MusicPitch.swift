@@ -2,17 +2,17 @@
 //  MusicPitch.swift
 //  Functional Harmony
 //
-//  Pitch-class → sample-key mapping for Canon-derived piano samples (A1–C5).
+//  Pitch-class → sample-key mapping for the bundled Steinway piano samples (A1–C5).
 //
 
 import Foundation
 
 /// Pure pitch helpers shared by voicing and the sample player.
-/// Sample files are named like `Cs3_bip.caf` (sharp = `s`).
+/// Sample files are named like `Cs3_pno.caf` (sharp = `s`).
 enum MusicPitch {
 
-    /// Lowest bundled sample (A1).
-    static let minMidi = 21
+    /// Lowest bundled sample (A1 = MIDI 33).
+    static let minMidi = 33
     /// Highest bundled sample (C5).
     static let maxMidi = 72
 
@@ -36,8 +36,12 @@ enum MusicPitch {
     private static let sharpNames = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
     /// Normalize UI pitch-class spelling (trim; keep case of first letter).
+    /// Converts Notes-pad unicode accidentals (♯/♭) to #/b used by sample mapping.
     static func normalizePitchClass(_ raw: String) -> String {
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmed = raw
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "♯", with: "#")
+            .replacingOccurrences(of: "♭", with: "b")
         guard !trimmed.isEmpty else { return trimmed }
         // Builders emit spellings like "C", "Eb", "F#", occasionally lowercase.
         let first = trimmed.prefix(1).uppercased()
@@ -62,7 +66,7 @@ enum MusicPitch {
         min(max(midi, minMidi), maxMidi)
     }
 
-    /// Convert MIDI to a sample key without the `_bip` suffix (e.g. `Cs3`).
+    /// Convert MIDI to a sample key without the `_pno` suffix (e.g. `Cs3`).
     static func sampleKey(midi: Int) -> String {
         let m = clampMIDI(midi)
         let octave = m / 12 - 1
@@ -126,8 +130,8 @@ enum MusicPitch {
         }
     }
 
-    /// Resource filename for a sample key: `Cs3` → `Cs3_bip`.
+    /// Resource filename for a sample key: `Cs3` → `Cs3_pno`.
     static func resourceBaseName(sampleKey: String) -> String {
-        "\(sampleKey)_bip"
+        "\(sampleKey)_pno"
     }
 }

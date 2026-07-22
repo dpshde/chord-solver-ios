@@ -59,14 +59,14 @@ struct IntervalView: View {
                     } else {
                         HStack {
                             Rectangle()
-                                .fill(Color.black.opacity(0.15))
+                                .fill(Color.borderStrong)
                                 .frame(height: 2)
                             Image(systemName: "arrow.down")
                                 .font(.title3)
-                                .foregroundColor(.textOnLight.opacity(0.6))
+                                .foregroundColor(.inkSecondary)
                                 .padding(.horizontal, Spacing.sm)
                             Rectangle()
-                                .fill(Color.black.opacity(0.15))
+                                .fill(Color.borderStrong)
                                 .frame(height: 2)
                         }
                     }

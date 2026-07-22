@@ -18,6 +18,10 @@ enum NoteVoicing {
         case scale
     }
 
+    /// Preferred starting octave for roots / first degrees (scientific pitch).
+    /// Bass of a C-major chord lands on C3; scales start near C3–C4.
+    private static let preferredRegister = 3
+
     /// Normalize and drop empty / unknown spellings (keeps order).
     static func cleanedPitchClasses(_ pitchClasses: [String]) -> [String] {
         pitchClasses
@@ -61,14 +65,18 @@ enum NoteVoicing {
         return nil
     }
 
-    /// Close-position block chord: bass near octave 2–3, upper voices ascending above the bass.
+    /// Close-position block chord: bass near octave 3–4, upper voices ascending above the bass.
     static func chordSampleKeys(pitchClasses: [String]) -> [String] {
         let cleaned = cleanedPitchClasses(pitchClasses)
         guard !cleaned.isEmpty else { return [] }
 
         var midis: [Int] = []
-        // Bass preference: octave 2, clamped into range.
-        if let bass = place(pitchClass: cleaned[0], above: MusicPitch.minMidi - 1, preferredMinOctave: 2) {
+        // Bass preference: preferredRegister, clamped into range.
+        if let bass = place(
+            pitchClass: cleaned[0],
+            above: MusicPitch.minMidi - 1,
+            preferredMinOctave: preferredRegister
+        ) {
             midis.append(bass)
         } else {
             return []
@@ -76,7 +84,7 @@ enum NoteVoicing {
 
         var last = midis[0]
         for pc in cleaned.dropFirst() {
-            if let m = place(pitchClass: pc, above: last, preferredMinOctave: 2) {
+            if let m = place(pitchClass: pc, above: last, preferredMinOctave: preferredRegister) {
                 midis.append(m)
                 last = m
             }
@@ -86,12 +94,50 @@ enum NoteVoicing {
 
     /// Ascending scale: start near octave 3–4 and step up when the next degree is not higher.
     static func scaleSampleKeys(pitchClasses: [String]) -> [String] {
+        scaleAscendingMIDIs(pitchClasses: pitchClasses).map { MusicPitch.sampleKey(midi: $0) }
+    }
+
+    /// Up-and-back practice run: ascend, hit the top tonic once, then descend to the root.
+    /// Returns pitch classes (for UI highlight) and matching sample keys (for playback).
+    /// Example C major: C D E F G A B | C | B A G F E D C
+    static func scaleUpAndBack(
+        pitchClasses: [String]
+    ) -> (pitchClasses: [String], sampleKeys: [String]) {
+        let cleaned = cleanedPitchClasses(pitchClasses)
+        guard !cleaned.isEmpty else { return ([], []) }
+
+        let ascending = scaleAscendingMIDIs(pitchClasses: cleaned)
+        guard ascending.count == cleaned.count else { return ([], []) }
+
+        // Top tonic: root pitch class strictly above the last ascending degree (one octave up when possible).
+        guard let top = place(
+            pitchClass: cleaned[0],
+            above: ascending[ascending.count - 1],
+            preferredMinOctave: preferredRegister
+        ) else {
+            return ([], [])
+        }
+
+        // Forwards + peak + reverse of the ascent (descending reuses the same octave ladder).
+        let midis = ascending + [top] + ascending.reversed()
+        let pcs = cleaned + [cleaned[0]] + cleaned.reversed()
+        guard midis.count == pcs.count else { return ([], []) }
+        return (pcs, midis.map { MusicPitch.sampleKey(midi: $0) })
+    }
+
+    /// MIDI numbers for an ascending scale in the preferred register.
+    private static func scaleAscendingMIDIs(pitchClasses: [String]) -> [Int] {
         let cleaned = cleanedPitchClasses(pitchClasses)
         guard !cleaned.isEmpty else { return [] }
 
         var midis: [Int] = []
-        // Prefer starting around C3–C4 (midi ~48–60).
-        if let first = place(pitchClass: cleaned[0], above: 47, preferredMinOctave: 3) {
+        // Prefer starting around C3–C4 (midi ~48–60). Floor is B of the octave below.
+        let floorMIDI = (preferredRegister * 12) - 1  // B2 when preferredRegister == 3
+        if let first = place(
+            pitchClass: cleaned[0],
+            above: floorMIDI,
+            preferredMinOctave: preferredRegister
+        ) {
             midis.append(first)
         } else {
             return []
@@ -99,12 +145,12 @@ enum NoteVoicing {
 
         var last = midis[0]
         for pc in cleaned.dropFirst() {
-            if let m = place(pitchClass: pc, above: last, preferredMinOctave: 3) {
+            if let m = place(pitchClass: pc, above: last, preferredMinOctave: preferredRegister) {
                 midis.append(m)
                 last = m
             }
         }
-        return midis.map { MusicPitch.sampleKey(midi: $0) }
+        return midis
     }
 
     /// Lowest MIDI for `pitchClass` that is strictly above `aboveMIDI` and inside the sample range.

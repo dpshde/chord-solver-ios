@@ -20,7 +20,7 @@ struct InputTriadAns: View {
     /// Skip layout transitions on first paint / tab re-entry; enable after settle.
     @State private var enableLayoutAnimations = false
     /// Shared with Scales — calculator pad needs result pinned high.
-    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = false
+    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = RootNotePadLayout.defaultUsesCalculator
     /// Global result audio mute; top-left toggle on the result chrome.
     @AppStorage(PianoSamplePlayer.soundEnabledKey) private var soundEnabled = true
 
@@ -56,6 +56,21 @@ struct InputTriadAns: View {
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: qualityCatalogExpanded)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: showMoreQualities)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: useCalculator)
+        // Autoplay when a new chord result appears (sound on); stop when cleared or leaving.
+        .onChange(of: playableChordNotes) { _, notes in
+            guard soundEnabled, !notes.isEmpty, showResult else {
+                if PianoSamplePlayer.shared.isPlaying {
+                    PianoSamplePlayer.shared.stop()
+                }
+                return
+            }
+            playChordResult()
+        }
+        .onDisappear {
+            if PianoSamplePlayer.shared.isPlaying {
+                PianoSamplePlayer.shared.stop()
+            }
+        }
         .onAppear {
             // Restore collapsed catalog instantly when re-entering with a selection.
             if hasQualitySelected {
@@ -76,12 +91,12 @@ struct InputTriadAns: View {
                 resultBand
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                Spacer(minLength: 0)
+                EmptyResultWordmark()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             controlsBand(in: height)
         }
-        .padding(.top, showResult ? 0 : Spacing.sm)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 
@@ -113,6 +128,30 @@ struct InputTriadAns: View {
         PianoSamplePlayer.shared.playChord(pitchClasses: notes)
     }
 
+    /// Matches the Quality “Change” control (second swipe-up on expanded pad).
+    private func openQualityChangeMenu() {
+        guard !qualityCatalogExpanded else { return }
+        withAnimation(AppAnimation.quickSpring) {
+            qualityCatalogExpanded = true
+            // Same as Change: open full advanced list when browsing.
+            showMoreQualities = !moreQualityGroups.isEmpty
+        }
+        HapticManager.shared.lightImpact()
+    }
+
+    /// Swipe-down “back”: close the Change catalog when it’s open (and a quality is set).
+    /// Returns true when handled so the pad does not also collapse in the same gesture.
+    private func handleQualitySwipeDownBack() -> Bool {
+        // Only “back” from Change when there is something to return to (collapsed chip).
+        guard qualityCatalogExpanded, hasQualitySelected else { return false }
+        withAnimation(AppAnimation.quickSpring) {
+            qualityCatalogExpanded = false
+            showMoreQualities = false
+        }
+        HapticManager.shared.lightImpact()
+        return true
+    }
+
     /// Controls hug their content so ROOT + pad + Quality always stay on-screen.
     /// Expanded catalog is height-capped and scrollable. Always keep one ScrollView
     /// host so GroupedOptionPicker is not remounted when tapping Change.
@@ -126,6 +165,8 @@ struct InputTriadAns: View {
                     .padding(.top, Spacing.md)
                     .padding(.bottom, Spacing.tabBarClearanceGlass)
             }
+            // Collapsed catalog fits on screen — disable scroll so pad swipes cannot rubber-band.
+            .scrollDisabled(!isBrowsingQualities)
             .scrollBounceBehavior(.basedOnSize)
             .defaultScrollAnchor(isBrowsingQualities ? .bottom : .top)
             // Collapsed: size to content (no flex). Expanded: cap height so result stays visible.
@@ -174,15 +215,18 @@ struct InputTriadAns: View {
 
             TriadNotePickerKeyboard(
                 noteText: $viewModel.root,
-                canClearQuality: hasQualitySelected
-            ) {
-                withAnimation(AppAnimation.quickSpring) {
-                    viewModel.resetButtons()
-                    // Re-open catalog to pick again, but keep controls bottom-anchored.
-                    qualityCatalogExpanded = true
-                    showMoreQualities = false
-                }
-            }
+                canClearQuality: hasQualitySelected,
+                onRootEmpty: {
+                    withAnimation(AppAnimation.quickSpring) {
+                        viewModel.resetButtons()
+                        // Re-open catalog to pick again, but keep controls bottom-anchored.
+                        qualityCatalogExpanded = true
+                        showMoreQualities = false
+                    }
+                },
+                onSwipeUpWhenExpanded: openQualityChangeMenu,
+                onSwipeDownBack: handleQualitySwipeDownBack
+            )
             .padding(.horizontal, Spacing.screenPadding)
         }
         .attentionPulse(tick: rootAttentionTick, accent: .brandCoral)

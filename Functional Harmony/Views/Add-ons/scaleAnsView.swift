@@ -18,7 +18,7 @@ struct scalesAnsView: View {
     /// Skip layout transitions on first paint / tab re-entry; enable after settle.
     @State private var enableLayoutAnimations = false
     /// Shared with Chords — calculator pad needs result pinned high.
-    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = false
+    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = RootNotePadLayout.defaultUsesCalculator
     /// Global result audio mute; top-left toggle on the result chrome.
     @AppStorage(PianoSamplePlayer.soundEnabledKey) private var soundEnabled = true
 
@@ -46,7 +46,8 @@ struct scalesAnsView: View {
                 title: getScaleLabel(),
                 accent: .brandPurple,
                 isSoundOn: $soundEnabled,
-                onPlayTap: playScaleResult
+                onPlayTap: playScaleResult,
+                showsLoopToggle: true
             ) {
                 ScaleNotesStrip(notes: scaleNotesList.filter { !$0.isEmpty }, prominent: true)
             }
@@ -55,6 +56,22 @@ struct scalesAnsView: View {
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: scaleCatalogExpanded)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: showMoreScales)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: useCalculator)
+        // Autoplay when a new scale result appears (sound on); stop when cleared or leaving.
+        .onChange(of: scaleNotesList) { _, newNotes in
+            let notes = newNotes.filter { !$0.isEmpty }
+            guard soundEnabled, !notes.isEmpty else {
+                if PianoSamplePlayer.shared.isPlaying {
+                    PianoSamplePlayer.shared.stop()
+                }
+                return
+            }
+            playScaleResult()
+        }
+        .onDisappear {
+            if PianoSamplePlayer.shared.isPlaying {
+                PianoSamplePlayer.shared.stop()
+            }
+        }
         .onAppear {
             // Restore collapsed catalog instantly when re-entering with a selection.
             if hasScaleSelected {
@@ -75,12 +92,12 @@ struct scalesAnsView: View {
                 resultBand
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                Spacer(minLength: 0)
+                EmptyResultWordmark()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             controlsBand(in: height)
         }
-        .padding(.top, showResult ? 0 : Spacing.sm)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
     }
 
@@ -92,19 +109,43 @@ struct scalesAnsView: View {
             expandsToFill: true,
             bleedTopSafeArea: true,
             isSoundOn: $soundEnabled,
-            onPlayTap: playScaleResult
+            onPlayTap: playScaleResult,
+            showsLoopToggle: true
         ) {
             ScaleNotesStrip(notes: scaleNotesList.filter { !$0.isEmpty }, prominent: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// Play surface: ascending once, or up-and-back once when loop mode is on.
     private func playScaleResult() {
         guard soundEnabled else { return }
         let notes = scaleNotesList.filter { !$0.isEmpty }
         guard !notes.isEmpty else { return }
         HapticManager.shared.lightImpact()
-        PianoSamplePlayer.shared.playSequence(pitchClasses: notes)
+        PianoSamplePlayer.shared.playScale(pitchClasses: notes)
+    }
+
+    /// Matches the Scale “Change” control (second swipe-up on expanded pad).
+    private func openScaleChangeMenu() {
+        guard !scaleCatalogExpanded else { return }
+        withAnimation(AppAnimation.quickSpring) {
+            scaleCatalogExpanded = true
+            // Same as Change: open full advanced list when browsing.
+            showMoreScales = !moreScaleGroups.isEmpty
+        }
+        HapticManager.shared.lightImpact()
+    }
+
+    /// Swipe-down “back”: close the Change catalog when it’s open (and a scale is set).
+    private func handleScaleSwipeDownBack() -> Bool {
+        guard scaleCatalogExpanded, hasScaleSelected else { return false }
+        withAnimation(AppAnimation.quickSpring) {
+            scaleCatalogExpanded = false
+            showMoreScales = false
+        }
+        HapticManager.shared.lightImpact()
+        return true
     }
 
     /// Controls hug their content so ROOT + pad + Scale always stay on-screen.
@@ -120,6 +161,8 @@ struct scalesAnsView: View {
                     .padding(.top, Spacing.md)
                     .padding(.bottom, Spacing.tabBarClearanceGlass)
             }
+            // Collapsed catalog fits on screen — disable scroll so pad swipes cannot rubber-band.
+            .scrollDisabled(!isBrowsingScales)
             .scrollBounceBehavior(.basedOnSize)
             .defaultScrollAnchor(isBrowsingScales ? .bottom : .top)
             // Collapsed: size to content (no flex). Expanded: cap height so result stays visible.
@@ -168,14 +211,17 @@ struct scalesAnsView: View {
 
             ScaleNotePickerKeyboard(
                 noteText: $viewModel.root,
-                canClearQuality: hasScaleSelected
-            ) {
-                withAnimation(AppAnimation.quickSpring) {
-                    viewModel.resetButtons()
-                    scaleCatalogExpanded = true
-                    showMoreScales = false
-                }
-            }
+                canClearQuality: hasScaleSelected,
+                onRootEmpty: {
+                    withAnimation(AppAnimation.quickSpring) {
+                        viewModel.resetButtons()
+                        scaleCatalogExpanded = true
+                        showMoreScales = false
+                    }
+                },
+                onSwipeUpWhenExpanded: openScaleChangeMenu,
+                onSwipeDownBack: handleScaleSwipeDownBack
+            )
             .padding(.horizontal, Spacing.screenPadding)
         }
         .attentionPulse(tick: rootAttentionTick, accent: .brandPurple)

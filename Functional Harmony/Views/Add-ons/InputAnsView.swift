@@ -249,7 +249,7 @@ struct IntervalNoteButton: View {
                         .overlay(
                             Spacing.shapeSmall
                                 .strokeBorder(
-                                    isSelected ? Color.brandAqua.opacity(0.7) : Color.black.opacity(0.1),
+                                    isSelected ? Color.brandAqua.opacity(0.7) : Color.borderSubtle,
                                     lineWidth: isSelected ? 2 : 1
                                 )
                         )

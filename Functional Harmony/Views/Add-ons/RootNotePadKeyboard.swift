@@ -17,6 +17,9 @@ enum RootNotePadLayout: String, CaseIterable {
 
     static let storageKey = "notePad.calculatorLayout"
 
+    /// Default when the preference key has never been set: expanded 3×3 calculator.
+    static let defaultUsesCalculator = true
+
     /// `true` → calculator (3×3). Stored as Bool for a simple AppStorage flag.
     static func fromCalculatorFlag(_ useCalculator: Bool) -> RootNotePadLayout {
         useCalculator ? .calculator : .linear
@@ -32,12 +35,16 @@ struct RootNotePadKeyboard: View {
     /// Extra ⌫ on empty root clears quality/scale.
     var canClearQuality: Bool = false
     var onRootEmpty: (() -> Void)? = nil
+    /// Swipe up while already on the calculator pad (e.g. open Quality/Scale Change).
+    var onSwipeUpWhenExpanded: (() -> Void)? = nil
+    /// Swipe down when already linear (or to peel Change first). Return `true` if handled.
+    var onSwipeDownBack: (() -> Bool)? = nil
     /// Selection wash (e.g. lightTintCoral / lightTintPurple).
     var selectedFill: Color = .lightTintCoral
     /// Selection border (e.g. brandCoral / brandPurple).
     var selectedStroke: Color = .brandCoral
 
-    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = false
+    @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = RootNotePadLayout.defaultUsesCalculator
     @State private var pressedButton: String? = nil
 
     private let gap: CGFloat = 10
@@ -94,6 +101,21 @@ struct RootNotePadKeyboard: View {
             }
         }
         .animation(AppAnimation.quickSpring, value: useCalculator)
+        .contentShape(Rectangle())
+        .notePadSwipeLayout(
+            useCalculator: $useCalculator,
+            onSwipeUpWhenExpanded: onSwipeUpWhenExpanded,
+            onSwipeDownBack: onSwipeDownBack,
+            onSwipeDownWhenCollapsed: { backspace() }
+        )
+        .accessibilityHint(swipeAccessibilityHint)
+    }
+
+    private var swipeAccessibilityHint: String {
+        if onSwipeUpWhenExpanded != nil {
+            return "Swipe up for calculator, again to change selection; swipe down to collapse or backspace"
+        }
+        return "Swipe up for calculator pad, swipe down to collapse or backspace"
     }
 
     // MARK: Util rows
@@ -169,13 +191,13 @@ struct RootNotePadKeyboard: View {
                         .fill(Color.surfaceCard.opacity(0.55))
                         .overlay(
                             Spacing.shapeMedium
-                                .strokeBorder(Color.black.opacity(0.1), lineWidth: 1)
+                                .strokeBorder(Color.borderSubtle, lineWidth: 1)
                         )
                 )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(useCalculator ? "Switch to linear note row" : "Switch to calculator pad")
-        .accessibilityHint("Changes how note letters are arranged")
+        .accessibilityHint("Or swipe down to collapse, swipe up to expand")
     }
 
     // MARK: Pads
@@ -280,7 +302,7 @@ struct RootNotePadKeyboard: View {
                         .overlay(
                             Spacing.shapeMedium
                                 .strokeBorder(
-                                    isSelected ? selectedStroke.opacity(0.7) : Color.black.opacity(0.1),
+                                    isSelected ? selectedStroke.opacity(0.7) : Color.borderSubtle,
                                     lineWidth: isSelected ? 2 : 1
                                 )
                         )
@@ -358,18 +380,98 @@ struct RootNotePadKeyboard: View {
     }
 }
 
+// MARK: - Swipe expand / collapse
+
+extension View {
+    /// Progressive pad gestures (pad owns the drag so parent ScrollViews do not bounce):
+    /// - Swipe up: linear → calculator → `onSwipeUpWhenExpanded` (Change)
+    /// - Swipe down: calculator → linear; linear → `onSwipeDownBack` (optional) or backspace
+    ///
+    /// `highPriorityGesture` + `minimumDistance` keeps short taps on keys working while
+    /// vertical flicks never fall through to a ScrollView rubber-band.
+    func notePadSwipeLayout(
+        useCalculator: Binding<Bool>,
+        onSwipeUpWhenExpanded: (() -> Void)? = nil,
+        onSwipeDownBack: (() -> Bool)? = nil,
+        onSwipeDownWhenCollapsed: (() -> Void)? = nil
+    ) -> some View {
+        modifier(
+            NotePadSwipeLayoutModifier(
+                useCalculator: useCalculator,
+                onSwipeUpWhenExpanded: onSwipeUpWhenExpanded,
+                onSwipeDownBack: onSwipeDownBack,
+                onSwipeDownWhenCollapsed: onSwipeDownWhenCollapsed
+            )
+        )
+    }
+}
+
+private struct NotePadSwipeLayoutModifier: ViewModifier {
+    @Binding var useCalculator: Bool
+    var onSwipeUpWhenExpanded: (() -> Void)?
+    var onSwipeDownBack: (() -> Bool)?
+    var onSwipeDownWhenCollapsed: (() -> Void)?
+
+    /// Ignore tiny flicks; require a deliberate vertical drag (taps still hit keys).
+    private let minDistance: CGFloat = 28
+    private let minVertical: CGFloat = 48
+    /// Prefer vertical over diagonal (dy must dominate dx).
+    private let verticalDominance: CGFloat = 1.15
+
+    func body(content: Content) -> some View {
+        content.highPriorityGesture(
+            DragGesture(minimumDistance: minDistance, coordinateSpace: .local)
+                .onEnded { value in
+                    let dy = value.translation.height
+                    let dx = value.translation.width
+                    guard abs(dy) >= minVertical else { return }
+                    guard abs(dy) >= abs(dx) * verticalDominance else { return }
+
+                    if dy < 0 {
+                        // Swipe up → expand calculator, or second swipe → Change menu
+                        if !useCalculator {
+                            withAnimation(AppAnimation.quickSpring) {
+                                useCalculator = true
+                            }
+                            HapticManager.shared.selectionChanged()
+                        } else if let onSwipeUpWhenExpanded {
+                            onSwipeUpWhenExpanded()
+                        }
+                    } else {
+                        // Swipe down → collapse calculator, else optional Change-back, else backspace
+                        if useCalculator {
+                            withAnimation(AppAnimation.quickSpring) {
+                                useCalculator = false
+                            }
+                            HapticManager.shared.selectionChanged()
+                            return
+                        }
+                        if let onSwipeDownBack, onSwipeDownBack() {
+                            return
+                        }
+                        onSwipeDownWhenCollapsed?()
+                    }
+                }
+        )
+    }
+}
+
 // MARK: - Chords / Scales thin wrappers
 
 struct TriadNotePickerKeyboard: View {
     @Binding var noteText: String
     var canClearQuality: Bool = false
     var onRootEmpty: (() -> Void)? = nil
+    var onSwipeUpWhenExpanded: (() -> Void)? = nil
+    var onSwipeDownBack: (() -> Bool)? = nil
 
     var body: some View {
         RootNotePadKeyboard(
             noteText: $noteText,
             canClearQuality: canClearQuality,
             onRootEmpty: onRootEmpty,
+            onSwipeUpWhenExpanded: onSwipeUpWhenExpanded,
+            onSwipeDownBack: onSwipeDownBack,
             selectedFill: .lightTintCoral,
             selectedStroke: .brandCoral
         )
@@ -380,12 +482,16 @@ struct ScaleNotePickerKeyboard: View {
     @Binding var noteText: String
     var canClearQuality: Bool = false
     var onRootEmpty: (() -> Void)? = nil
+    var onSwipeUpWhenExpanded: (() -> Void)? = nil
+    var onSwipeDownBack: (() -> Bool)? = nil
 
     var body: some View {
         RootNotePadKeyboard(
             noteText: $noteText,
             canClearQuality: canClearQuality,
             onRootEmpty: onRootEmpty,
+            onSwipeUpWhenExpanded: onSwipeUpWhenExpanded,
+            onSwipeDownBack: onSwipeDownBack,
             selectedFill: .lightTintPurple,
             selectedStroke: .brandPurple
         )
