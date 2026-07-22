@@ -418,38 +418,72 @@ struct AnswerResultPanel<Content: View>: View {
     var expandsToFill: Bool = false
     /// Bleed accent into the top safe area (status bar region).
     var bleedTopSafeArea: Bool = false
+    /// When set, shows a top-leading sound toggle and enables tap-to-play on the rest of the panel.
+    var isSoundOn: Binding<Bool>? = nil
+    /// Invoked when the user taps the result surface (not the sound toggle). Gated by `isSoundOn` at call sites.
+    var onPlayTap: (() -> Void)? = nil
     @ViewBuilder let content: () -> Content
 
     private var centersContent: Bool {
         verticallyCenterContent || expandsToFill
     }
 
+    private var isPlayable: Bool {
+        isSoundOn != nil && onPlayTap != nil
+    }
+
     var body: some View {
-        VStack(spacing: 0) {
-            if centersContent { Spacer(minLength: 0) }
+        ZStack {
+            VStack(spacing: 0) {
+                if centersContent { Spacer(minLength: 0) }
 
-            // Title + body stay a tight unit (no spacer between them).
-            VStack(spacing: Spacing.sm) {
-                Text(title.uppercased())
-                    .font(expandsToFill ? .resultTitleHero : .resultTitle)
-                    .foregroundColor(.inkOnAccent)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.45)
-                    .tracking(1.0)
-                    .frame(maxWidth: .infinity)
+                // Title + body stay a tight unit (no spacer between them).
+                VStack(spacing: Spacing.sm) {
+                    Text(title.uppercased())
+                        .font(expandsToFill ? .resultTitleHero : .resultTitle)
+                        .foregroundColor(.inkOnAccent)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.45)
+                        .tracking(1.0)
+                        .frame(maxWidth: .infinity)
 
-                content()
-                    .frame(maxWidth: .infinity, alignment: .center)
+                    content()
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+
+                if centersContent { Spacer(minLength: 0) }
             }
+            .frame(maxWidth: .infinity, minHeight: innerMinHeight, alignment: .center)
+            .padding(.horizontal, Spacing.screenPadding)
+            .padding(.vertical, Spacing.md)
+            .frame(maxWidth: .infinity, maxHeight: expandsToFill ? .infinity : nil, alignment: .center)
+            .frame(minHeight: minHeight)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard isPlayable else { return }
+                onPlayTap?()
+            }
+            .accessibilityAddTraits(isPlayable ? .isButton : [])
+            .accessibilityHint(isPlayable ? "Plays the result when sound is on" : "")
 
-            if centersContent { Spacer(minLength: 0) }
         }
-        .frame(maxWidth: .infinity, minHeight: innerMinHeight, alignment: .center)
-        .padding(.horizontal, Spacing.screenPadding)
-        .padding(.vertical, Spacing.md)
-        .frame(maxWidth: .infinity, maxHeight: expandsToFill ? .infinity : nil, alignment: .center)
-        .frame(minHeight: minHeight)
+        .overlay(alignment: .topLeading) {
+            if let isSoundOn {
+                ResultSoundToggle(isOn: isSoundOn)
+                    .padding(.leading, Spacing.screenPadding)
+                    .padding(.top, Spacing.sm)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            // Hide play indicator while muted — result taps also produce no audio.
+            if isPlayable, let isSoundOn, isSoundOn.wrappedValue {
+                ResultPlayIndicator()
+                    .padding(.trailing, Spacing.screenPadding)
+                    .padding(.top, Spacing.sm)
+                    .allowsHitTesting(false)
+            }
+        }
         .background {
             Group {
                 if bleedTopSafeArea {
@@ -467,6 +501,50 @@ struct AnswerResultPanel<Content: View>: View {
     private var innerMinHeight: CGFloat? {
         guard let minHeight else { return nil }
         return max(0, minHeight - Spacing.md * 2)
+    }
+}
+
+// MARK: - Result chrome controls
+
+/// Compact speaker control for playable chord/scale result chrome (top-left).
+struct ResultSoundToggle: View {
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Button {
+            isOn.toggle()
+            if !isOn {
+                PianoSamplePlayer.shared.stop()
+            }
+            HapticManager.shared.selectionChanged()
+        } label: {
+            Image(systemName: isOn ? "speaker.wave.2.fill" : "speaker.slash.fill")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(.inkOnAccent)
+                .frame(width: 36, height: 36)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isOn ? "Sound on" : "Sound off")
+        .accessibilityHint("Toggles audible playback for results")
+        .accessibilityAddTraits(.isButton)
+    }
+}
+
+/// Top-right play activity indicator for result chrome (shown only when sound is on).
+struct ResultPlayIndicator: View {
+    @ObservedObject private var player = PianoSamplePlayer.shared
+
+    var body: some View {
+        Image(systemName: player.isPlaying ? "waveform" : "play.fill")
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundColor(.inkOnAccent.opacity(player.isPlaying ? 1 : 0.85))
+            .frame(width: 36, height: 36)
+            .scaleEffect(player.isPlaying ? 1.06 : 1.0)
+            .animation(AppAnimation.quickSpring, value: player.isPlaying)
+            .accessibilityLabel(player.isPlaying ? "Playing" : "Ready to play")
+            .accessibilityHidden(false)
+            .allowsHitTesting(false)
     }
 }
 
@@ -488,7 +566,14 @@ enum LayoutContext {
 struct FullscreenAnswerView<Content: View>: View {
     let title: String
     let accent: Color
+    /// When set, shows a top-leading sound toggle and enables tap-to-play on the rest of the surface.
+    var isSoundOn: Binding<Bool>? = nil
+    var onPlayTap: (() -> Void)? = nil
     @ViewBuilder let content: () -> Content
+
+    private var isPlayable: Bool {
+        isSoundOn != nil && onPlayTap != nil
+    }
 
     var body: some View {
         ZStack {
@@ -510,9 +595,32 @@ struct FullscreenAnswerView<Content: View>: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical, Spacing.lg)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                guard isPlayable else { return }
+                onPlayTap?()
+            }
+            .accessibilityAddTraits(isPlayable ? .isButton : [])
+            .accessibilityHint(isPlayable ? "Plays the result when sound is on" : "")
+
+        }
+        .overlay(alignment: .topLeading) {
+            if let isSoundOn {
+                ResultSoundToggle(isOn: isSoundOn)
+                    .padding(.leading, Spacing.lg)
+                    .padding(.top, Spacing.md)
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            if isPlayable, let isSoundOn, isSoundOn.wrappedValue {
+                ResultPlayIndicator()
+                    .padding(.trailing, Spacing.lg)
+                    .padding(.top, Spacing.md)
+                    .allowsHitTesting(false)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 }
 

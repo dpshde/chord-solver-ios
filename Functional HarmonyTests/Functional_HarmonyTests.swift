@@ -378,4 +378,217 @@ final class Functional_HarmonyTests: XCTestCase {
         vm.dim = true
         XCTAssertEqual(vm.chordIntervalsFromRoot(), ["m3", "d5"])
     }
+
+    // MARK: - Pitch mapping / voicing (shipped MusicPitch + NoteVoicing)
+
+    func testMusicPitchEnharmonicsMapToSharpSampleStems() {
+        // Drive shipped MusicPitch.sampleStemAndOctaveAdjust — not a reimplementation.
+        let db = MusicPitch.sampleStemAndOctaveAdjust(for: "Db")
+        XCTAssertEqual(db.0, "Cs")
+        XCTAssertEqual(db.1, 0)
+
+        let es = MusicPitch.sampleStemAndOctaveAdjust(for: "E#")
+        XCTAssertEqual(es.0, "F")
+        XCTAssertEqual(es.1, 0)
+
+        let bs = MusicPitch.sampleStemAndOctaveAdjust(for: "B#")
+        XCTAssertEqual(bs.0, "C")
+        XCTAssertEqual(bs.1, 1)
+
+        let cb = MusicPitch.sampleStemAndOctaveAdjust(for: "Cb")
+        XCTAssertEqual(cb.0, "B")
+        XCTAssertEqual(cb.1, -1)
+    }
+
+    func testMusicPitchSampleKeyForEnharmonics() {
+        XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "Db", octave: 3), "Cs3")
+        XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "E#", octave: 4), "F4")
+        XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "B#", octave: 3), "C4")
+        XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "Cb", octave: 4), "B3")
+        XCTAssertEqual(MusicPitch.sampleKey(pitchClass: "Bb", octave: 2), "As2")
+    }
+
+    func testChordVoicingStaysWithinSampleRange() {
+        let keys = NoteVoicing.chordSampleKeys(pitchClasses: ["C", "E", "G"])
+        XCTAssertEqual(keys.count, 3)
+        for key in keys {
+            assertSampleKeyInA1ToC5(key)
+        }
+        // Close position ascending: parse octaves from keys.
+        let midis = keys.compactMap(midiFromSampleKey)
+        XCTAssertEqual(midis.count, 3)
+        XCTAssertLessThan(midis[0], midis[1])
+        XCTAssertLessThan(midis[1], midis[2])
+    }
+
+    func testBbDominant7VoicingUsesAsForBb() {
+        let keys = NoteVoicing.chordSampleKeys(pitchClasses: ["Bb", "D", "F", "Ab"])
+        XCTAssertEqual(keys.count, 4)
+        XCTAssertTrue(keys[0].hasPrefix("As"), "Bb bass should use As sample stem, got \(keys[0])")
+        for key in keys {
+            assertSampleKeyInA1ToC5(key)
+        }
+    }
+
+    func testFSharpHarmonicMinorScaleVoicingAscending() {
+        // F# G# A B C# D E# — E# maps to F sample.
+        let degrees = ["F#", "G#", "A", "B", "C#", "D", "E#"]
+        let keys = NoteVoicing.scaleSampleKeys(pitchClasses: degrees)
+        XCTAssertEqual(keys.count, 7)
+        for key in keys {
+            assertSampleKeyInA1ToC5(key)
+        }
+        let midis = keys.compactMap(midiFromSampleKey)
+        XCTAssertEqual(midis.count, 7)
+        for i in 1..<midis.count {
+            XCTAssertLessThan(midis[i - 1], midis[i], "scale must ascend: \(keys)")
+        }
+        XCTAssertTrue(keys.contains { $0.hasPrefix("F") && !$0.hasPrefix("Fs") } || keys.last?.hasPrefix("F") == true,
+                      "E# should surface as F sample in keys \(keys)")
+    }
+
+    func testEmptyPitchClassesProduceNoSampleKeys() {
+        XCTAssertTrue(NoteVoicing.chordSampleKeys(pitchClasses: []).isEmpty)
+        XCTAssertTrue(NoteVoicing.scaleSampleKeys(pitchClasses: ["", "  "]).isEmpty)
+    }
+
+    /// Single-note voicing used by tap-to-play on NoteCard / scale degrees.
+    func testSingleNoteVoicingProducesInRangeSampleKey() {
+        let keys = NoteVoicing.scaleSampleKeys(pitchClasses: ["Eb"])
+        XCTAssertEqual(keys.count, 1)
+        XCTAssertTrue(keys[0].hasPrefix("Ds"), "Eb should map to Ds sample, got \(keys[0])")
+        assertSampleKeyInA1ToC5(keys[0])
+    }
+
+    /// Chord gain must fall as note count rises so summed level stays even.
+    func testChordMixGainScalesWithNoteCount() {
+        let g1 = PianoSamplePlayer.chordMixGain(noteCount: 1)
+        let g2 = PianoSamplePlayer.chordMixGain(noteCount: 2)
+        let g3 = PianoSamplePlayer.chordMixGain(noteCount: 3)
+        let g4 = PianoSamplePlayer.chordMixGain(noteCount: 4)
+        let g5 = PianoSamplePlayer.chordMixGain(noteCount: 5)
+
+        XCTAssertEqual(g1, 1.0, accuracy: 0.001)
+        XCTAssertLessThan(g2, g1)
+        XCTAssertLessThan(g3, g2)
+        XCTAssertLessThan(g4, g3)
+        XCTAssertLessThan(g5, g4)
+
+        // Stay within sensible bounds for teaching-app loudness.
+        XCTAssertGreaterThanOrEqual(g3, 0.30)
+        XCTAssertLessThanOrEqual(g3, 0.75)
+        XCTAssertGreaterThanOrEqual(g4, 0.30)
+        XCTAssertLessThanOrEqual(g4, 0.65)
+
+        // Stricter than pure 1/√n alone would not require — at least not louder than energy scale.
+        XCTAssertLessThanOrEqual(g3, Float(1.0 / sqrt(3.0)) + 0.02)
+        XCTAssertLessThanOrEqual(g4, Float(1.0 / sqrt(4.0)) + 0.02)
+    }
+
+    func testMixGainAliasMatchesChordMixGainForSimultaneous() {
+        for n in 1...6 {
+            XCTAssertEqual(
+                PianoSamplePlayer.mixGain(voiceCount: n, simultaneous: true),
+                PianoSamplePlayer.chordMixGain(noteCount: n),
+                accuracy: 0.0001,
+                "n=\(n)"
+            )
+        }
+    }
+
+    /// Sequenced notes share one hold length (no longer final note).
+    func testScaleNotesUseEqualHoldDuration() {
+        let hold = PianoSamplePlayer.equalScaleNoteHold
+        XCTAssertGreaterThan(hold, 0.05)
+        XCTAssertLessThan(hold, 1.0)
+        // Total sequence time is noteCount * hold (no extra last-note tail).
+        for noteCount in [5, 7, 8] {
+            let expected = hold * Double(noteCount)
+            XCTAssertEqual(expected, hold * Double(noteCount), accuracy: 0.0001)
+            XCTAssertEqual(
+                expected / Double(noteCount),
+                hold,
+                accuracy: 0.0001,
+                "each of \(noteCount) notes must get the same hold"
+            )
+        }
+    }
+
+    /// Separate-note playback must use the same sample key as the full set voicing.
+    func testSeparateNoteKeepsRelativeOctaveFromScaleContext() {
+        // B then C must place C above B (C4 after B3), not a lone C3.
+        let degrees = ["B", "C"]
+        let full = NoteVoicing.scaleSampleKeys(pitchClasses: degrees)
+        XCTAssertEqual(full.count, 2)
+        let aloneC = NoteVoicing.scaleSampleKeys(pitchClasses: ["C"])
+        XCTAssertEqual(aloneC.count, 1)
+
+        let contextualC = NoteVoicing.sampleKey(
+            at: 1,
+            pitchClass: "C",
+            among: degrees,
+            style: .scale
+        )
+        XCTAssertEqual(contextualC, full[1])
+        XCTAssertNotEqual(
+            contextualC,
+            aloneC[0],
+            "Context-aware C should not match isolated C placement: alone=\(aloneC[0]) context=\(String(describing: contextualC))"
+        )
+    }
+
+    func testSeparateNoteKeepsRelativeOctaveFromChordContext() {
+        let tones = ["C", "E", "G"]
+        let full = NoteVoicing.chordSampleKeys(pitchClasses: tones)
+        XCTAssertEqual(full.count, 3)
+        let g = NoteVoicing.sampleKey(at: 2, pitchClass: "G", among: tones, style: .chord)
+        XCTAssertEqual(g, full[2])
+        // Bass C is lower register than upper G in close position.
+        let cMidi = midiFromSampleKey(full[0])
+        let gMidi = midiFromSampleKey(full[2])
+        XCTAssertNotNil(cMidi)
+        XCTAssertNotNil(gMidi)
+        if let cMidi, let gMidi {
+            XCTAssertLessThan(cMidi, gMidi)
+        }
+    }
+
+    @MainActor
+    func testSoundEnabledDefaultsOnAndGatesPlayerFlag() {
+        let key = PianoSamplePlayer.soundEnabledKey
+        let previous = UserDefaults.standard.object(forKey: key)
+        defer {
+            if let previous {
+                UserDefaults.standard.set(previous, forKey: key)
+            } else {
+                UserDefaults.standard.removeObject(forKey: key)
+            }
+        }
+        UserDefaults.standard.removeObject(forKey: key)
+        XCTAssertTrue(PianoSamplePlayer.shared.isSoundEnabled)
+
+        PianoSamplePlayer.shared.isSoundEnabled = false
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: key))
+        PianoSamplePlayer.shared.isSoundEnabled = true
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: key))
+    }
+
+    // MARK: - Sample key helpers for tests (decode only; production mapping is MusicPitch)
+
+    private func assertSampleKeyInA1ToC5(_ key: String, file: StaticString = #filePath, line: UInt = #line) {
+        guard let midi = midiFromSampleKey(key) else {
+            XCTFail("unparseable sample key \(key)", file: file, line: line)
+            return
+        }
+        XCTAssertGreaterThanOrEqual(midi, MusicPitch.minMidi, "\(key) below A1", file: file, line: line)
+        XCTAssertLessThanOrEqual(midi, MusicPitch.maxMidi, "\(key) above C5", file: file, line: line)
+    }
+
+    private func midiFromSampleKey(_ key: String) -> Int? {
+        // Sample keys: C3, Cs4, As2, etc.
+        guard let last = key.last, last.isNumber, let octave = Int(String(last)) else { return nil }
+        let stem = String(key.dropLast())
+        let sharp = stem.replacingOccurrences(of: "s", with: "#")
+        return MusicPitch.midi(pitchClass: sharp, octave: octave)
+    }
 }

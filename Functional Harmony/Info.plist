@@ -10,6 +10,8 @@
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleDisplayName</key>
+	<string>FH</string>
 	<key>CFBundleName</key>
 	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundlePackageType</key>
@@ -32,6 +34,8 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>BebasNeue-Regular.ttf</string>
+		<string>SpaceGrotesk-Bold.ttf</string>
+		<string>SpaceGrotesk-SemiBold.ttf</string>
 	</array>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>

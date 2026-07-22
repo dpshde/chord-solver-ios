@@ -216,13 +216,13 @@ struct IntervalNoteKeyboard: View {
     var body: some View {
         VStack(spacing: 10) {
             HStack(spacing: 8) {
-                IntervalNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: hasFlatAccidental, backgroundColor: Color.white.opacity(0.55)) {
+                IntervalNoteButton(label: "♭", isPressed: pressedButton == "♭", isSelected: hasFlatAccidental, backgroundColor: Color.surfaceCard.opacity(0.55)) {
                     appendAccidental("b")
                 }
                 .opacity(canApplyAccidental ? 1 : 0.45)
                 .disabled(!canApplyAccidental)
 
-                IntervalNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: hasSharpAccidental, backgroundColor: Color.white.opacity(0.55)) {
+                IntervalNoteButton(label: "♯", isPressed: pressedButton == "♯", isSelected: hasSharpAccidental, backgroundColor: Color.surfaceCard.opacity(0.55)) {
                     appendAccidental("#")
                 }
                 .opacity(canApplyAccidental ? 1 : 0.45)

@@ -7,7 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA47DC312E970000009B1967 /* BebasNeue-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA47DC302E970000009B1967 /* BebasNeue-Regular.ttf */; };
+		AA47A0D12E9A00010001A002 /* MusicPitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A001 /* MusicPitch.swift */; };
+		AA47A0D12E9A00010001A004 /* NoteVoicing.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A003 /* NoteVoicing.swift */; };
+		AA47A0D12E9A00010001A006 /* PianoSamplePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A005 /* PianoSamplePlayer.swift */; };
+		AA47A0D12E9A00010001A009 /* Samples in Resources */ = {isa = PBXBuildFile; fileRef = AA47A0D12E9A00010001A008 /* Samples */; };
+		AA47DC312E970000009B1967 /* SpaceGrotesk-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA47DC302E970000009B1967 /* SpaceGrotesk-Bold.ttf */; };
+		AA47DC352E970000009B1969 /* BebasNeue-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA47DC362E970000009B1969 /* BebasNeue-Regular.ttf */; };
+		AA47DC332E970000009B1968 /* SpaceGrotesk-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AA47DC342E970000009B1968 /* SpaceGrotesk-SemiBold.ttf */; };
 		AA47DC032E96CA00009B1967 /* NotesTheoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DC022E96CA00009B1967 /* NotesTheoryView.swift */; };
 		AA47DC012E96CA00009B1967 /* NotesChordIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DC002E96CA00009B1967 /* NotesChordIdentifier.swift */; };
 		AA47DC112E96D100009B1967 /* MusicQueryParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA47DC102E96D100009B1967 /* MusicQueryParser.swift */; };
@@ -88,7 +94,13 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		AA47DC302E970000009B1967 /* BebasNeue-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BebasNeue-Regular.ttf"; sourceTree = "<group>"; };
+		AA47A0D12E9A00010001A001 /* MusicPitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPitch.swift; sourceTree = "<group>"; };
+		AA47A0D12E9A00010001A003 /* NoteVoicing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteVoicing.swift; sourceTree = "<group>"; };
+		AA47A0D12E9A00010001A005 /* PianoSamplePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSamplePlayer.swift; sourceTree = "<group>"; };
+		AA47A0D12E9A00010001A008 /* Samples */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Samples; sourceTree = "<group>"; };
+		AA47DC302E970000009B1967 /* SpaceGrotesk-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-Bold.ttf"; sourceTree = "<group>"; };
+		AA47DC362E970000009B1969 /* BebasNeue-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BebasNeue-Regular.ttf"; sourceTree = "<group>"; };
+		AA47DC342E970000009B1968 /* SpaceGrotesk-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceGrotesk-SemiBold.ttf"; sourceTree = "<group>"; };
 		AA47DC022E96CA00009B1967 /* NotesTheoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesTheoryView.swift; sourceTree = "<group>"; };
 		AA47DC002E96CA00009B1967 /* NotesChordIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesChordIdentifier.swift; sourceTree = "<group>"; };
 		AA47DC102E96D100009B1967 /* MusicQueryParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicQueryParser.swift; sourceTree = "<group>"; };
@@ -257,14 +269,28 @@
 		AA47DC322E970000009B1967 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
-				AA47DC302E970000009B1967 /* BebasNeue-Regular.ttf */,
+				AA47DC362E970000009B1969 /* BebasNeue-Regular.ttf */,
+				AA47DC302E970000009B1967 /* SpaceGrotesk-Bold.ttf */,
+				AA47DC342E970000009B1968 /* SpaceGrotesk-SemiBold.ttf */,
 			);
 			path = Fonts;
+			sourceTree = "<group>";
+		};
+		AA47A0D12E9A00010001A007 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				AA47A0D12E9A00010001A001 /* MusicPitch.swift */,
+				AA47A0D12E9A00010001A003 /* NoteVoicing.swift */,
+				AA47A0D12E9A00010001A005 /* PianoSamplePlayer.swift */,
+				AA47A0D12E9A00010001A008 /* Samples */,
+			);
+			path = Audio;
 			sourceTree = "<group>";
 		};
 		D283F3C0262CCDF60069AF23 /* Functional Harmony */ = {
 			isa = PBXGroup;
 			children = (
+				AA47A0D12E9A00010001A007 /* Audio */,
 				AA47DBBE2E96C776009B1967 /* Views */,
 				D283F496262CD1FE0069AF23 /* ViewModels */,
 				D283F497262CD21E0069AF23 /* Models */,
@@ -437,7 +463,10 @@
 			files = (
 				D283F3C9262CCDF70069AF23 /* Preview Assets.xcassets in Resources */,
 				D283F3C6262CCDF70069AF23 /* Assets.xcassets in Resources */,
-				AA47DC312E970000009B1967 /* BebasNeue-Regular.ttf in Resources */,
+				AA47DC352E970000009B1969 /* BebasNeue-Regular.ttf in Resources */,
+				AA47DC312E970000009B1967 /* SpaceGrotesk-Bold.ttf in Resources */,
+				AA47DC332E970000009B1968 /* SpaceGrotesk-SemiBold.ttf in Resources */,
+				AA47A0D12E9A00010001A009 /* Samples in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -500,6 +529,9 @@
 				D283F453262CCF5F0069AF23 /* scalesViewModel.swift in Sources */,
 				AA47DBAD2E96C76E009B1967 /* HapticManager.swift in Sources */,
 				D283F461262CCFC20069AF23 /* triadViewModel.swift in Sources */,
+				AA47A0D12E9A00010001A002 /* MusicPitch.swift in Sources */,
+				AA47A0D12E9A00010001A004 /* NoteVoicing.swift in Sources */,
+				AA47A0D12E9A00010001A006 /* PianoSamplePlayer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -682,7 +714,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Functional Harmony/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Functional Harmony/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Functional Harmony";
+				INFOPLIST_KEY_CFBundleDisplayName = FH;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -705,7 +737,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"Functional Harmony/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "Functional Harmony/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Functional Harmony";
+				INFOPLIST_KEY_CFBundleDisplayName = FH;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -60,19 +60,36 @@ extension Font {
     /// For captions and small labels
     static let caption = Font.system(size: 12, weight: .regular, design: .default)
 
-    // MARK: - Result Titles (Bebas Neue — display only)
+    // MARK: - Display faces (custom, registered in Info.plist `UIAppFonts`)
 
-    /// PostScript name registered via `UIAppFonts` → `BebasNeue-Regular.ttf`.
-    private static let resultDisplayFamily = "BebasNeue-Regular"
+    /// Primary title face — Bebas Neue (condensed display for answer banners).
+    private static let primaryTitleFamily = "BebasNeue-Regular"
+
+    /// Alternate face — Space Grotesk (mixed-case UI / secondary labels).
+    private static let altDisplayFamily = "SpaceGrotesk-Bold"
+    private static let altDisplayFamilyMedium = "SpaceGrotesk-SemiBold"
+
+    // MARK: Result titles (primary: Bebas Neue)
 
     /// Compact answer banner title (portrait, non-hero).
-    static let resultTitle = Font.custom(resultDisplayFamily, size: 30)
+    static let resultTitle = Font.custom(primaryTitleFamily, size: 30)
 
     /// Hero answer banner title (expands-to-fill portrait band).
-    static let resultTitleHero = Font.custom(resultDisplayFamily, size: 44)
+    static let resultTitleHero = Font.custom(primaryTitleFamily, size: 44)
 
     /// Full-bleed landscape answer title.
-    static let resultTitleFullscreen = Font.custom(resultDisplayFamily, size: 72)
+    static let resultTitleFullscreen = Font.custom(primaryTitleFamily, size: 72)
+
+    // MARK: Alt display (Space Grotesk)
+
+    /// Alternate display title — use when mixed-case readability matters more than condensed impact.
+    static let resultTitleAlt = Font.custom(altDisplayFamily, size: 26)
+
+    /// Alternate hero display.
+    static let resultTitleAltHero = Font.custom(altDisplayFamily, size: 38)
+
+    /// Secondary supporting line in the alt family.
+    static let resultTitleAltSecondary = Font.custom(altDisplayFamilyMedium, size: 16)
 }
 
 // MARK: - Dynamic Type Support

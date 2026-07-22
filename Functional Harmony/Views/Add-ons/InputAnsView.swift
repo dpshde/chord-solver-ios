@@ -112,7 +112,7 @@ struct IntervalNotePickerKeyboard: View {
                 .padding()
                 .background(
                     Spacing.shapeSmall
-                        .fill(Color.white.opacity(0.1))
+                        .fill(Color.surfaceCard.opacity(0.1))
                 )
 
             // Accidentals (♭ left, ♯ right) + backspace
@@ -120,7 +120,7 @@ struct IntervalNotePickerKeyboard: View {
                 IntervalNoteButton(
                     label: "♭",
                     isPressed: pressedButton == "♭",
-                    backgroundColor: Color.white.opacity(0.15)
+                    backgroundColor: Color.surfaceCard.opacity(0.15)
                 ) {
                     appendAccidental("b")
                 }
@@ -130,7 +130,7 @@ struct IntervalNotePickerKeyboard: View {
                 IntervalNoteButton(
                     label: "♯",
                     isPressed: pressedButton == "♯",
-                    backgroundColor: Color.white.opacity(0.15)
+                    backgroundColor: Color.surfaceCard.opacity(0.15)
                 ) {
                     appendAccidental("#")
                 }
@@ -233,7 +233,7 @@ struct IntervalNoteButton: View {
     let label: String
     let isPressed: Bool
     var isSelected: Bool = false
-    var backgroundColor: Color = Color.white.opacity(0.72)
+    var backgroundColor: Color = Color.surfaceCard.opacity(0.72)
     let action: () -> Void
 
     var body: some View {

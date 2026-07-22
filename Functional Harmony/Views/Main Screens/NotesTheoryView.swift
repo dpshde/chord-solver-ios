@@ -147,7 +147,7 @@ struct NotesTheoryView: View {
     }
 
     private var accentKeyFill: Color {
-        Color(red: 0.96, green: 0.96, blue: 0.98)
+        Color.darkBeige
     }
 
     private var clearKeyFill: Color {
@@ -288,7 +288,7 @@ struct NotesTheoryView: View {
         HStack(spacing: gap) {
             padKey(
                 title: "♭",
-                fill: Color.white.opacity(0.55),
+                fill: Color.surfaceCard.opacity(0.55),
                 enabled: session.canEditLast,
                 fontSize: 26
             ) {
@@ -297,7 +297,7 @@ struct NotesTheoryView: View {
 
             padKey(
                 title: "♯",
-                fill: Color.white.opacity(0.55),
+                fill: Color.surfaceCard.opacity(0.55),
                 enabled: session.canEditLast,
                 fontSize: 26
             ) {
@@ -359,7 +359,7 @@ struct NotesTheoryView: View {
             ForEach(naturalNotes, id: \.self) { note in
                 padKey(
                     title: note,
-                    fill: Color.white.opacity(0.72),
+                    fill: Color.surfaceCard.opacity(0.72),
                     enabled: session.canAddNote
                 ) {
                     session.appendNote(note)
@@ -409,7 +409,7 @@ struct NotesTheoryView: View {
         default:
             padKey(
                 title: cell,
-                fill: Color.white.opacity(0.72),
+                fill: Color.surfaceCard.opacity(0.72),
                 enabled: session.canAddNote,
                 expands: true,
                 fontSize: 24
@@ -433,7 +433,7 @@ struct NotesTheoryView: View {
                 .frame(maxHeight: .infinity)
                 .background(
                     Spacing.shapeMedium
-                        .fill(Color.white.opacity(0.55))
+                        .fill(Color.surfaceCard.opacity(0.55))
                         .overlay(
                             Spacing.shapeMedium
                                 .strokeBorder(Color.black.opacity(0.1), lineWidth: 1)

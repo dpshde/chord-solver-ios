@@ -51,9 +51,9 @@ struct RootNotePadKeyboard: View {
         ["♭", "B", "♯"],
     ]
 
-    /// Cooler off-white for ♭ / ♯ — same idea as Notes accent keys.
+    /// Slightly deeper paper for ♭ / ♯ — same idea as Notes accent keys.
     private var accentKeyFill: Color {
-        Color(red: 0.96, green: 0.96, blue: 0.98)
+        Color.darkBeige
     }
 
     private var layout: RootNotePadLayout {
@@ -104,7 +104,7 @@ struct RootNotePadKeyboard: View {
             padKey(
                 label: "♭",
                 isSelected: hasFlatAccidental,
-                fill: Color.white.opacity(0.55),
+                fill: Color.surfaceCard.opacity(0.55),
                 enabled: canApplyAccidental
             ) {
                 appendAccidental("b")
@@ -113,7 +113,7 @@ struct RootNotePadKeyboard: View {
             padKey(
                 label: "♯",
                 isSelected: hasSharpAccidental,
-                fill: Color.white.opacity(0.55),
+                fill: Color.surfaceCard.opacity(0.55),
                 enabled: canApplyAccidental
             ) {
                 appendAccidental("#")
@@ -166,7 +166,7 @@ struct RootNotePadKeyboard: View {
                 .frame(maxHeight: .infinity)
                 .background(
                     Spacing.shapeMedium
-                        .fill(Color.white.opacity(0.55))
+                        .fill(Color.surfaceCard.opacity(0.55))
                         .overlay(
                             Spacing.shapeMedium
                                 .strokeBorder(Color.black.opacity(0.1), lineWidth: 1)
@@ -186,7 +186,7 @@ struct RootNotePadKeyboard: View {
                 padKey(
                     label: note,
                     isSelected: noteText.starts(with: note),
-                    fill: Color.white.opacity(0.72)
+                    fill: Color.surfaceCard.opacity(0.72)
                 ) {
                     appendNote(note)
                 }
@@ -239,7 +239,7 @@ struct RootNotePadKeyboard: View {
             padKey(
                 label: cell,
                 isSelected: noteText.starts(with: cell),
-                fill: Color.white.opacity(0.72),
+                fill: Color.surfaceCard.opacity(0.72),
                 expands: true,
                 fontSize: 24
             ) {

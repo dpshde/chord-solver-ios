@@ -21,6 +21,8 @@ struct InputTriadAns: View {
     @State private var enableLayoutAnimations = false
     /// Shared with Scales — calculator pad needs result pinned high.
     @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = false
+    /// Global result audio mute; top-left toggle on the result chrome.
+    @AppStorage(PianoSamplePlayer.soundEnabledKey) private var soundEnabled = true
 
     private var hasQualitySelected: Bool {
         viewModel.major || viewModel.minor || viewModel.aug || viewModel.dim ||
@@ -41,7 +43,12 @@ struct InputTriadAns: View {
         LandscapeResultContainer(hasResult: showResult) { size in
             portraitLayout(height: size.height)
         } landscape: {
-            FullscreenAnswerView(title: getChordLabel(), accent: .brandCoral) {
+            FullscreenAnswerView(
+                title: getChordLabel(),
+                accent: .brandCoral,
+                isSoundOn: $soundEnabled,
+                onPlayTap: playChordResult
+            ) {
                 chordNotesRow(prominent: true)
             }
         }
@@ -84,11 +91,26 @@ struct InputTriadAns: View {
             accent: .brandCoral,
             verticallyCenterContent: true,
             expandsToFill: true,
-            bleedTopSafeArea: true
+            bleedTopSafeArea: true,
+            isSoundOn: $soundEnabled,
+            onPlayTap: playChordResult
         ) {
             chordNotesRow(prominent: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Pitch classes currently shown in the result (root-position / special stacks).
+    private var playableChordNotes: [String] {
+        chordTones.map(\.note).filter { !$0.isEmpty }
+    }
+
+    private func playChordResult() {
+        guard soundEnabled else { return }
+        let notes = playableChordNotes
+        guard !notes.isEmpty else { return }
+        HapticManager.shared.lightImpact()
+        PianoSamplePlayer.shared.playChord(pitchClasses: notes)
     }
 
     /// Controls hug their content so ROOT + pad + Quality always stay on-screen.
@@ -298,9 +320,17 @@ struct InputTriadAns: View {
 
     @ViewBuilder
     private func chordNotesRow(prominent: Bool) -> some View {
+        let context = playableChordNotes
         HStack(spacing: prominent ? Spacing.md : Spacing.sm) {
-            ForEach(Array(chordTones.enumerated()), id: \.offset) { _, tone in
-                NoteCard(note: tone.note, interval: tone.interval, prominent: prominent)
+            ForEach(Array(chordTones.enumerated()), id: \.offset) { index, tone in
+                NoteCard(
+                    note: tone.note,
+                    interval: tone.interval,
+                    prominent: prominent,
+                    contextNotes: context,
+                    contextIndex: index,
+                    voicingStyle: .chord
+                )
             }
         }
     }
@@ -331,42 +361,81 @@ struct InputTriadAns: View {
 // MARK: - Note Card Component
 
 /// Chord tone card: large pitch class with quiet interval caption beneath.
+/// Tapping always plays that pitch (not gated by the result sound toggle),
+/// using the same octave placement as the full chord/scale voicing.
 struct NoteCard: View {
     let note: String
     /// Compact interval from root (e.g. `R`, `M3`, `P5`). Optional for previews.
     var interval: String? = nil
     /// Landscape fullscreen — larger type and chrome.
     var prominent: Bool = false
+    /// Full ordered pitch set in the result (for relative octave placement).
+    var contextNotes: [String] = []
+    /// Index within `contextNotes` when available.
+    var contextIndex: Int? = nil
+    var voicingStyle: NoteVoicing.Style = .chord
+
+    @ObservedObject private var player = PianoSamplePlayer.shared
+
+    private var isSounding: Bool {
+        player.isHighlighting(pitchClass: note)
+    }
 
     var body: some View {
-        VStack(spacing: prominent ? 10 : 6) {
-            Text(note)
-                .font(.system(size: prominent ? 44 : 28, weight: .bold, design: .rounded))
-                .foregroundColor(.inkPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.45)
-                .frame(maxWidth: .infinity)
-
-            if let interval, !interval.isEmpty {
-                Text(interval)
-                    .font(.system(size: prominent ? 16 : 11, weight: .medium, design: .rounded))
-                    .foregroundColor(.inkTertiary)
+        Button {
+            playThisNote()
+        } label: {
+            VStack(spacing: prominent ? 10 : 6) {
+                Text(note)
+                    .font(.system(size: prominent ? 44 : 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.inkPrimary)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                    .accessibilityLabel(Self.accessibilityName(for: interval))
+                    .minimumScaleFactor(0.45)
+                    .frame(maxWidth: .infinity)
+
+                if let interval, !interval.isEmpty {
+                    Text(interval)
+                        .font(.system(size: prominent ? 16 : 11, weight: .medium, design: .rounded))
+                        .foregroundColor(.inkTertiary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .accessibilityLabel(Self.accessibilityName(for: interval))
+                }
             }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: prominent ? (interval == nil ? 96 : 110) : (interval == nil ? 64 : 72))
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, prominent ? Spacing.md : Spacing.sm)
+            .background(
+                Spacing.shapeMedium
+                    .fill(isSounding ? Color.playingNoteFill : Color.surfaceCard)
+            )
+            .overlay(
+                Spacing.shapeMedium
+                    .strokeBorder(Color.inkPrimary.opacity(isSounding ? 0.14 : 0), lineWidth: 1.5)
+            )
+            .scaleEffect(isSounding ? 1.045 : 1.0)
+            .animation(AppAnimation.bouncySpring, value: isSounding)
         }
-        .frame(maxWidth: .infinity)
-        .frame(minHeight: prominent ? (interval == nil ? 96 : 110) : (interval == nil ? 64 : 72))
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, prominent ? Spacing.md : Spacing.sm)
-        .background(
-            Spacing.shapeMedium
-                .fill(Color.surfaceCard)
-        )
+        .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(
             interval.map { "\(note), \(Self.accessibilityName(for: $0))" } ?? note
+        )
+        .accessibilityHint("Plays this note")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue(isSounding ? "Playing" : "")
+    }
+
+    private func playThisNote() {
+        guard !note.isEmpty else { return }
+        HapticManager.shared.lightImpact()
+        let among = contextNotes.isEmpty ? [note] : contextNotes
+        PianoSamplePlayer.shared.playNote(
+            pitchClass: note,
+            at: contextIndex,
+            among: among,
+            style: voicingStyle
         )
     }
 

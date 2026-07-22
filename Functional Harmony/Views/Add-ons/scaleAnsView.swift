@@ -19,6 +19,8 @@ struct scalesAnsView: View {
     @State private var enableLayoutAnimations = false
     /// Shared with Chords — calculator pad needs result pinned high.
     @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = false
+    /// Global result audio mute; top-left toggle on the result chrome.
+    @AppStorage(PianoSamplePlayer.soundEnabledKey) private var soundEnabled = true
 
     private var hasScaleSelected: Bool {
         viewModel.major || viewModel.minorNat || viewModel.minorHarm ||
@@ -40,7 +42,12 @@ struct scalesAnsView: View {
         LandscapeResultContainer(hasResult: showResult) { size in
             portraitLayout(height: size.height)
         } landscape: {
-            FullscreenAnswerView(title: getScaleLabel(), accent: .brandPurple) {
+            FullscreenAnswerView(
+                title: getScaleLabel(),
+                accent: .brandPurple,
+                isSoundOn: $soundEnabled,
+                onPlayTap: playScaleResult
+            ) {
                 ScaleNotesStrip(notes: scaleNotesList.filter { !$0.isEmpty }, prominent: true)
             }
         }
@@ -83,11 +90,21 @@ struct scalesAnsView: View {
             accent: .brandPurple,
             verticallyCenterContent: true,
             expandsToFill: true,
-            bleedTopSafeArea: true
+            bleedTopSafeArea: true,
+            isSoundOn: $soundEnabled,
+            onPlayTap: playScaleResult
         ) {
             ScaleNotesStrip(notes: scaleNotesList.filter { !$0.isEmpty }, prominent: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func playScaleResult() {
+        guard soundEnabled else { return }
+        let notes = scaleNotesList.filter { !$0.isEmpty }
+        guard !notes.isEmpty else { return }
+        HapticManager.shared.lightImpact()
+        PianoSamplePlayer.shared.playSequence(pitchClasses: notes)
     }
 
     /// Controls hug their content so ROOT + pad + Scale always stay on-screen.
@@ -306,15 +323,17 @@ struct ScaleNotesStrip: View {
     var body: some View {
         HStack(spacing: rowSpacing) {
             ForEach(Array(notes.enumerated()), id: \.offset) { index, note in
-                ScaleDegreeCell(note: note, degree: index + 1, metrics: metrics)
+                ScaleDegreeCell(
+                    note: note,
+                    degree: index + 1,
+                    metrics: metrics,
+                    contextNotes: notes,
+                    contextIndex: index
+                )
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(
-            notes.enumerated()
-                .map { "\($0.offset + 1), \($0.element)" }
-                .joined(separator: "; ")
-        )
+        // Keep cells as separate accessibility buttons (each plays its pitch).
+        .accessibilityElement(children: .contain)
     }
 }
 
@@ -369,35 +388,71 @@ private struct ScaleDegreeMetrics {
 }
 
 /// One scale step: pitch class with quiet degree caption (chord NoteCard language).
+/// Tapping always plays that pitch (not gated by the result sound toggle),
+/// using the same octave as the full ascending scale voicing.
 private struct ScaleDegreeCell: View {
     let note: String
     let degree: Int
     let metrics: ScaleDegreeMetrics
+    let contextNotes: [String]
+    let contextIndex: Int
+
+    @ObservedObject private var player = PianoSamplePlayer.shared
+
+    private var isSounding: Bool {
+        player.isHighlighting(pitchClass: note)
+    }
 
     var body: some View {
-        VStack(spacing: metrics.stackSpacing) {
-            Text(note)
-                .font(.system(size: metrics.noteSize, weight: .bold, design: .rounded))
-                .foregroundColor(.inkPrimary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-                .frame(maxWidth: .infinity)
+        Button {
+            playThisNote()
+        } label: {
+            VStack(spacing: metrics.stackSpacing) {
+                Text(note)
+                    .font(.system(size: metrics.noteSize, weight: .bold, design: .rounded))
+                    .foregroundColor(.inkPrimary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .frame(maxWidth: .infinity)
 
-            Text("\(degree)")
-                .font(.system(size: metrics.degreeSize, weight: .semibold, design: .rounded))
-                .foregroundColor(.inkTertiary)
-                .monospacedDigit()
-                .lineLimit(1)
+                Text("\(degree)")
+                    .font(.system(size: metrics.degreeSize, weight: .semibold, design: .rounded))
+                    .foregroundColor(.inkTertiary)
+                    .monospacedDigit()
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: metrics.minHeight)
+            .padding(.horizontal, metrics.horizontalPadding)
+            .padding(.vertical, metrics.verticalPadding)
+            .background(
+                Spacing.shapeMedium
+                    .fill(isSounding ? Color.playingNoteFill : Color.surfaceCard)
+            )
+            .overlay(
+                Spacing.shapeMedium
+                    .strokeBorder(Color.inkPrimary.opacity(isSounding ? 0.14 : 0), lineWidth: 1.5)
+            )
+            .scaleEffect(isSounding ? 1.05 : 1.0)
+            .animation(AppAnimation.bouncySpring, value: isSounding)
         }
-        .frame(maxWidth: .infinity)
-        .frame(minHeight: metrics.minHeight)
-        .padding(.horizontal, metrics.horizontalPadding)
-        .padding(.vertical, metrics.verticalPadding)
-        .background(
-            Spacing.shapeMedium
-                .fill(Color.surfaceCard)
-        )
+        .buttonStyle(.plain)
         .accessibilityLabel("Degree \(degree), \(note)")
+        .accessibilityHint("Plays this note")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityValue(isSounding ? "Playing" : "")
+    }
+
+    private func playThisNote() {
+        guard !note.isEmpty else { return }
+        HapticManager.shared.lightImpact()
+        let among = contextNotes.isEmpty ? [note] : contextNotes
+        PianoSamplePlayer.shared.playNote(
+            pitchClass: note,
+            at: contextIndex,
+            among: among,
+            style: .scale
+        )
     }
 }
 
@@ -406,7 +461,13 @@ struct ScaleNoteCard: View {
     let note: String
 
     var body: some View {
-        ScaleDegreeCell(note: note, degree: 1, metrics: ScaleDegreeMetrics(count: 1, prominent: false))
+        ScaleDegreeCell(
+            note: note,
+            degree: 1,
+            metrics: ScaleDegreeMetrics(count: 1, prominent: false),
+            contextNotes: [note],
+            contextIndex: 0
+        )
     }
 }
 

@@ -27,7 +27,7 @@ struct NotePickerKeyboard: View {
                 .padding()
                 .background(
                     Spacing.shapeSmall
-                        .fill(Color.white.opacity(0.1))
+                        .fill(Color.surfaceCard.opacity(0.1))
                 )
 
             // Accidentals (♭ left, ♯ right) + backspace
@@ -35,7 +35,7 @@ struct NotePickerKeyboard: View {
                 NoteButton(
                     label: "♭",
                     isPressed: pressedButton == "♭",
-                    backgroundColor: Color.white.opacity(0.15)
+                    backgroundColor: Color.surfaceCard.opacity(0.15)
                 ) {
                     appendAccidental("b")
                 }
@@ -45,7 +45,7 @@ struct NotePickerKeyboard: View {
                 NoteButton(
                     label: "♯",
                     isPressed: pressedButton == "♯",
-                    backgroundColor: Color.white.opacity(0.15)
+                    backgroundColor: Color.surfaceCard.opacity(0.15)
                 ) {
                     appendAccidental("#")
                 }
@@ -133,7 +133,7 @@ struct NotePickerKeyboard: View {
 struct NoteButton: View {
     let label: String
     let isPressed: Bool
-    var backgroundColor: Color = Color.white.opacity(0.2)
+    var backgroundColor: Color = Color.surfaceCard.opacity(0.2)
     let action: () -> Void
 
     var body: some View {

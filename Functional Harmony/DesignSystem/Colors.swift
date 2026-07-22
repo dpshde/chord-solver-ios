@@ -34,22 +34,28 @@ extension Color {
     static let brandNotes = Color(red: 0.82, green: 0.38, blue: 0.26)
     static let brandNotesSoft = Color(red: 0.95, green: 0.72, blue: 0.62)
 
-    /// App canvas — ghost white (CSS ghostwhite ≈ #F8F8FF)
-    static let brandBeige = Color(red: 248 / 255, green: 248 / 255, blue: 255 / 255)
+    // Warm paper family (no pure white surfaces — pure white clashes with cream)
+    // #F8F4EF is the lightest “white”; canvas sits one step deeper for lift.
 
-    /// Subtle secondary surface one step below ghost white
-    static let darkBeige = Color(red: 0.94, green: 0.94, blue: 0.97)
+    /// App canvas — warm paper, one step deeper than cards
+    static let brandBeige = Color(red: 242 / 255, green: 236 / 255, blue: 229 / 255) // #F2ECE5
+
+    /// Subtle secondary surface (accent keys, recessed chrome)
+    static let darkBeige = Color(red: 232 / 255, green: 224 / 255, blue: 215 / 255) // #E8E0D7
 
     // MARK: - Surfaces & Ink (shared UI chrome)
 
-    /// Elevated card / control surface on beige
-    static let surfaceCard = Color.white
+    /// Elevated card / control surface — warm paper white (#F8F4EF)
+    static let surfaceCard = Color(red: 248 / 255, green: 244 / 255, blue: 239 / 255)
 
-    /// Subtle hairline border on cards
-    static let borderSubtle = Color.black.opacity(0.08)
+    /// Soft fill for a note card while its sample is sounding (subtle vs surfaceCard).
+    static let playingNoteFill = Color(red: 232 / 255, green: 224 / 255, blue: 215 / 255) // matches darkBeige
+
+    /// Subtle hairline border on cards (warm-tinted, not cool black)
+    static let borderSubtle = Color(red: 0.35, green: 0.28, blue: 0.22).opacity(0.10)
 
     /// Stronger border for focused controls
-    static let borderStrong = Color.black.opacity(0.14)
+    static let borderStrong = Color(red: 0.35, green: 0.28, blue: 0.22).opacity(0.16)
 
     /// Primary ink on light surfaces (warm near-black)
     static let inkPrimary = Color(red: 0.16, green: 0.12, blue: 0.11)
@@ -149,14 +155,14 @@ extension Color {
     /// Tab highlight aqua - slightly more visible than input selection tint
     static let tabHighlightAqua = Color(red: 0.90, green: 0.96, blue: 0.97)
 
-    /// Neutral gray for non-selection buttons
-    static let neutralGray = Color(red: 0.85, green: 0.85, blue: 0.85)
+    /// Neutral warm gray for non-selection buttons
+    static let neutralGray = Color(red: 0.86, green: 0.83, blue: 0.79)
 
     /// Soft rose for active backspace (subtle, only when something can be deleted)
     static let mutedRed = Color(red: 0.92, green: 0.72, blue: 0.72)
 
-    /// Idle backspace / empty destructive control
-    static let backspaceIdle = Color(red: 0.93, green: 0.93, blue: 0.94)
+    /// Idle backspace / empty destructive control (warm, matches paper family)
+    static let backspaceIdle = Color(red: 0.91, green: 0.88, blue: 0.84)
 
     /// Legacy name used by keyboards — maps to muted red
     static let pastelRed = mutedRed
