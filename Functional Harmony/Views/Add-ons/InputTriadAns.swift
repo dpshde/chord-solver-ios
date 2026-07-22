@@ -174,7 +174,9 @@ struct InputTriadAns: View {
             // Collapsed catalog fits on screen — disable scroll so pad swipes cannot rubber-band.
             .scrollDisabled(!isBrowsingQualities)
             .scrollBounceBehavior(.basedOnSize)
-            .defaultScrollAnchor(isBrowsingQualities ? .bottom : .top)
+            // Bottom-anchor only when Change is open *with* a selection (options near pad).
+            // After backspace clears quality, stay top so Root/pad do not jump down.
+            .defaultScrollAnchor((isBrowsingQualities && hasQualitySelected) ? .bottom : .top)
             // Collapsed: size to content (no flex). Expanded: cap height so result stays visible.
             .frame(maxHeight: isBrowsingQualities ? catalogCap : nil)
             .fixedSize(horizontal: false, vertical: !isBrowsingQualities)
@@ -223,9 +225,10 @@ struct InputTriadAns: View {
                 noteText: $viewModel.root,
                 canClearQuality: hasQualitySelected,
                 onRootEmpty: {
+                    // Deselect quality and reopen common catalog; keep scroll at Root/pad
+                    // (defaultScrollAnchor stays .top when hasQualitySelected is false).
                     withAnimation(AppAnimation.quickSpring) {
                         viewModel.resetButtons()
-                        // Re-open catalog to pick again, but keep controls bottom-anchored.
                         qualityCatalogExpanded = true
                         showMoreQualities = false
                     }

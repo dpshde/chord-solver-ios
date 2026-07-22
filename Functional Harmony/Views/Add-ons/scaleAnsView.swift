@@ -170,7 +170,9 @@ struct scalesAnsView: View {
             // Collapsed catalog fits on screen — disable scroll so pad swipes cannot rubber-band.
             .scrollDisabled(!isBrowsingScales)
             .scrollBounceBehavior(.basedOnSize)
-            .defaultScrollAnchor(isBrowsingScales ? .bottom : .top)
+            // Bottom-anchor only when Change is open *with* a selection (options near pad).
+            // After backspace clears scale, stay top so Root/pad do not jump down.
+            .defaultScrollAnchor((isBrowsingScales && hasScaleSelected) ? .bottom : .top)
             // Collapsed: size to content (no flex). Expanded: cap height so result stays visible.
             .frame(maxHeight: isBrowsingScales ? catalogCap : nil)
             .fixedSize(horizontal: false, vertical: !isBrowsingScales)
@@ -219,6 +221,8 @@ struct scalesAnsView: View {
                 noteText: $viewModel.root,
                 canClearQuality: hasScaleSelected,
                 onRootEmpty: {
+                    // Deselect scale and reopen common catalog; keep scroll at Root/pad
+                    // (defaultScrollAnchor stays .top when hasScaleSelected is false).
                     withAnimation(AppAnimation.quickSpring) {
                         viewModel.resetButtons()
                         scaleCatalogExpanded = true
