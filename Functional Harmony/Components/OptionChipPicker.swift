@@ -93,8 +93,11 @@ struct OptionTileButton: View {
 
     var body: some View {
         Button(action: {
+            // UI mutation first; haptic after paint so selection never trails feedback.
             action()
-            HapticManager.shared.mediumImpact()
+            HapticManager.shared.afterUIUpdate {
+                HapticManager.shared.mediumImpact()
+            }
         }) {
             HStack(spacing: Spacing.sm) {
                 VStack(alignment: showsCheckmark ? .leading : .center, spacing: 2) {

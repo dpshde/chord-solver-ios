@@ -45,7 +45,8 @@ struct RootNotePadKeyboard: View {
     var selectedStroke: Color = .brandCoral
 
     @AppStorage(RootNotePadLayout.storageKey) private var useCalculator = RootNotePadLayout.defaultUsesCalculator
-    @State private var pressedButton: String? = nil
+    /// Local selection chrome so the pad highlights before parent/view-model work finishes.
+    @State private var optimisticRoot: String? = nil
 
     private let gap: CGFloat = 10
     private let utilRowHeight: CGFloat = 56
@@ -68,16 +69,21 @@ struct RootNotePadKeyboard: View {
     }
 
     private var canBackspace: Bool {
-        !noteText.isEmpty || canClearQuality
+        !displayRoot.isEmpty || canClearQuality
     }
 
     private var canApplyAccidental: Bool {
-        !noteText.isEmpty
+        !displayRoot.isEmpty
+    }
+
+    /// Root string used for pad highlight (optimistic first, then bound value).
+    private var displayRoot: String {
+        optimisticRoot ?? noteText
     }
 
     private var accidentalSuffix: String {
-        guard noteText.count > 1 else { return "" }
-        return String(noteText.dropFirst())
+        guard displayRoot.count > 1 else { return "" }
+        return String(displayRoot.dropFirst())
     }
 
     private var hasSharpAccidental: Bool {
@@ -109,6 +115,16 @@ struct RootNotePadKeyboard: View {
             onSwipeDownWhenCollapsed: { backspace() }
         )
         .accessibilityHint(swipeAccessibilityHint)
+        .onChange(of: noteText) { _, newValue in
+            // Drop local chrome once the binding has caught up (or was cleared externally).
+            if optimisticRoot == nil { return }
+            if newValue == optimisticRoot || newValue.isEmpty {
+                optimisticRoot = nil
+            }
+        }
+        .onAppear {
+            HapticManager.shared.prepareAll()
+        }
     }
 
     private var swipeAccessibilityHint: String {
@@ -207,7 +223,7 @@ struct RootNotePadKeyboard: View {
             ForEach(naturalNotes, id: \.self) { note in
                 padKey(
                     label: note,
-                    isSelected: noteText.starts(with: note),
+                    isSelected: displayRoot.starts(with: note),
                     fill: Color.surfaceCard.opacity(0.72)
                 ) {
                     appendNote(note)
@@ -260,7 +276,7 @@ struct RootNotePadKeyboard: View {
         default:
             padKey(
                 label: cell,
-                isSelected: noteText.starts(with: cell),
+                isSelected: displayRoot.starts(with: cell),
                 fill: Color.surfaceCard.opacity(0.72),
                 expands: true,
                 fontSize: 24
@@ -283,7 +299,6 @@ struct RootNotePadKeyboard: View {
     ) -> some View {
         let isMusicSymbol = label == "♭" || label == "♯" || label == "⌫"
         let size = fontSize ?? (isMusicSymbol ? 26 : 22)
-        let isPressed = pressedButton == label
 
         return Button(action: action) {
             Text(verbatim: label)
@@ -307,9 +322,11 @@ struct RootNotePadKeyboard: View {
                                 )
                         )
                 )
-                .scaleEffect(isPressed ? 0.96 : 1.0)
         }
-        .buttonStyle(.plain)
+        // Touch-down scale before the action runs (true optimistic press).
+        .buttonStyle(PadKeyPressStyle())
+        // Snap selection fill; avoid springing the highlight behind the haptic.
+        .animation(nil, value: isSelected)
         .disabled(!enabled)
         .opacity(enabled ? 1 : (label == "⌫" ? 0.65 : 0.45))
     }
@@ -317,23 +334,24 @@ struct RootNotePadKeyboard: View {
     // MARK: Actions
 
     private func appendNote(_ note: String) {
-        withAnimation(AppAnimation.quickSpring) {
-            noteText = note
-        }
-        flash(note)
-        HapticManager.shared.mediumImpact()
+        // Paint the key immediately via local state, then commit the binding on the
+        // next run-loop turn so parent recompute (scale/chord result) cannot block it.
+        commitRootOptimistically(note, haptic: .medium)
     }
 
     private func appendAccidental(_ accidental: String) {
-        guard !noteText.isEmpty else {
-            flash(accidental == "#" ? "♯" : "♭")
-            HapticManager.shared.lightImpact()
+        let base = displayRoot
+        guard !base.isEmpty else {
+            HapticManager.shared.afterUIUpdate {
+                HapticManager.shared.lightImpact()
+            }
             return
         }
 
-        let letter = String(noteText.prefix(1))
+        let letter = String(base.prefix(1))
+        let currentSuffix = base.count > 1 ? String(base.dropFirst()) : ""
         var marks: [Character] = Array(
-            accidentalSuffix
+            currentSuffix
                 .replacingOccurrences(of: "♯", with: "#")
                 .replacingOccurrences(of: "♭", with: "b")
                 .filter { $0 == "#" || $0 == "b" }
@@ -353,30 +371,56 @@ struct RootNotePadKeyboard: View {
             }
         }
 
-        withAnimation(AppAnimation.quickSpring) {
-            noteText = letter + String(marks)
-        }
-        flash(accidental == "#" ? "♯" : "♭")
-        HapticManager.shared.lightImpact()
+        commitRootOptimistically(letter + String(marks), haptic: .light)
     }
 
     private func backspace() {
-        if !noteText.isEmpty {
-            withAnimation(AppAnimation.quickSpring) {
-                noteText.removeLast()
-            }
+        let base = displayRoot
+        if !base.isEmpty {
+            commitRootOptimistically(String(base.dropLast()), haptic: .rigid)
         } else if canClearQuality {
+            optimisticRoot = nil
             onRootEmpty?()
+            HapticManager.shared.afterUIUpdate {
+                HapticManager.shared.rigidImpact()
+            }
+        } else {
+            HapticManager.shared.afterUIUpdate {
+                HapticManager.shared.rigidImpact()
+            }
         }
-        flash("⌫")
-        HapticManager.shared.rigidImpact()
     }
 
-    private func flash(_ key: String) {
-        pressedButton = key
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            pressedButton = nil
+    /// Snap pad chrome now; push `noteText` + haptic after paint so they never lead the UI.
+    private func commitRootOptimistically(_ next: String, haptic: PadHaptic) {
+        optimisticRoot = next
+        HapticManager.shared.afterUIUpdate {
+            // Drop superseded taps (rapid C→D→E) so only the latest commit runs.
+            guard optimisticRoot == next else { return }
+            if noteText != next {
+                noteText = next
+            }
+            switch haptic {
+            case .light: HapticManager.shared.lightImpact()
+            case .medium: HapticManager.shared.mediumImpact()
+            case .rigid: HapticManager.shared.rigidImpact()
+            }
         }
+    }
+}
+
+private enum PadHaptic {
+    case light, medium, rigid
+}
+
+// MARK: - Pad press style
+
+/// Immediate press scale on touch-down (before action / parent updates).
+private struct PadKeyPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(AppAnimation.press, value: configuration.isPressed)
     }
 }
 

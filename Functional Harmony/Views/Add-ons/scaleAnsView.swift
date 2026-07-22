@@ -46,7 +46,7 @@ struct scalesAnsView: View {
                 title: getScaleLabel(),
                 accent: .brandPurple,
                 isSoundOn: $soundEnabled,
-                onPlayTap: playScaleResult,
+                onPlayTap: { playScaleResult() },
                 showsLoopToggle: true
             ) {
                 ScaleNotesStrip(notes: scaleNotesList.filter { !$0.isEmpty }, prominent: true)
@@ -57,6 +57,7 @@ struct scalesAnsView: View {
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: showMoreScales)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: useCalculator)
         // Autoplay when a new scale result appears (sound on); stop when cleared or leaving.
+        // Defer audio so root-pad selection / result strip can paint first.
         .onChange(of: scaleNotesList) { _, newNotes in
             let notes = newNotes.filter { !$0.isEmpty }
             guard soundEnabled, !notes.isEmpty else {
@@ -65,7 +66,9 @@ struct scalesAnsView: View {
                 }
                 return
             }
-            playScaleResult()
+            HapticManager.shared.afterUIUpdate {
+                playScaleResult(playHaptic: false)
+            }
         }
         .onDisappear {
             if PianoSamplePlayer.shared.isPlaying {
@@ -109,7 +112,7 @@ struct scalesAnsView: View {
             expandsToFill: true,
             bleedTopSafeArea: true,
             isSoundOn: $soundEnabled,
-            onPlayTap: playScaleResult,
+            onPlayTap: { playScaleResult() },
             showsLoopToggle: true
         ) {
             ScaleNotesStrip(notes: scaleNotesList.filter { !$0.isEmpty }, prominent: true)
@@ -118,11 +121,14 @@ struct scalesAnsView: View {
     }
 
     /// Play surface: ascending once, or up-and-back once when loop mode is on.
-    private func playScaleResult() {
+    /// - Parameter playHaptic: false for autoplay (pad/chip already gave feedback).
+    private func playScaleResult(playHaptic: Bool = true) {
         guard soundEnabled else { return }
         let notes = scaleNotesList.filter { !$0.isEmpty }
         guard !notes.isEmpty else { return }
-        HapticManager.shared.lightImpact()
+        if playHaptic {
+            HapticManager.shared.lightImpact()
+        }
         PianoSamplePlayer.shared.playScale(pitchClasses: notes)
     }
 
@@ -281,13 +287,14 @@ struct scalesAnsView: View {
     }
 
     private func select(_ mutate: (scalesViewModel) -> Void) {
-        withAnimation(AppAnimation.quickSpring) {
-            viewModel.resetButtons()
-            mutate(viewModel)
-        }
+        // Commit scale choice immediately; layout collapse can still spring via the picker.
+        viewModel.resetButtons()
+        mutate(viewModel)
         if viewModel.root.isEmpty {
-            HapticManager.shared.warning()
             rootAttentionTick += 1
+            HapticManager.shared.afterUIUpdate {
+                HapticManager.shared.warning()
+            }
         }
     }
 

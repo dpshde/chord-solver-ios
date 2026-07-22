@@ -47,7 +47,7 @@ struct InputTriadAns: View {
                 title: getChordLabel(),
                 accent: .brandCoral,
                 isSoundOn: $soundEnabled,
-                onPlayTap: playChordResult
+                onPlayTap: { playChordResult() }
             ) {
                 chordNotesRow(prominent: true)
             }
@@ -57,6 +57,7 @@ struct InputTriadAns: View {
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: showMoreQualities)
         .animation(enableLayoutAnimations ? AppAnimation.quickSpring : nil, value: useCalculator)
         // Autoplay when a new chord result appears (sound on); stop when cleared or leaving.
+        // Defer audio so root-pad selection / result strip can paint first.
         .onChange(of: playableChordNotes) { _, notes in
             guard soundEnabled, !notes.isEmpty, showResult else {
                 if PianoSamplePlayer.shared.isPlaying {
@@ -64,7 +65,9 @@ struct InputTriadAns: View {
                 }
                 return
             }
-            playChordResult()
+            HapticManager.shared.afterUIUpdate {
+                playChordResult(playHaptic: false)
+            }
         }
         .onDisappear {
             if PianoSamplePlayer.shared.isPlaying {
@@ -108,7 +111,7 @@ struct InputTriadAns: View {
             expandsToFill: true,
             bleedTopSafeArea: true,
             isSoundOn: $soundEnabled,
-            onPlayTap: playChordResult
+            onPlayTap: { playChordResult() }
         ) {
             chordNotesRow(prominent: true)
         }
@@ -120,11 +123,14 @@ struct InputTriadAns: View {
         chordTones.map(\.note).filter { !$0.isEmpty }
     }
 
-    private func playChordResult() {
+    /// - Parameter playHaptic: false for autoplay (pad/chip already gave feedback).
+    private func playChordResult(playHaptic: Bool = true) {
         guard soundEnabled else { return }
         let notes = playableChordNotes
         guard !notes.isEmpty else { return }
-        HapticManager.shared.lightImpact()
+        if playHaptic {
+            HapticManager.shared.lightImpact()
+        }
         PianoSamplePlayer.shared.playChord(pitchClasses: notes)
     }
 
@@ -286,14 +292,15 @@ struct InputTriadAns: View {
     }
 
     private func select(_ mutate: (triadBuildViewModel) -> Void) {
-        withAnimation(AppAnimation.quickSpring) {
-            viewModel.resetButtons()
-            mutate(viewModel)
-        }
+        // Commit quality immediately; catalog collapse still springs in the picker.
+        viewModel.resetButtons()
+        mutate(viewModel)
         // Quality chosen before a root — standard attention pulse on notes UI.
         if viewModel.root.isEmpty {
-            HapticManager.shared.warning()
             rootAttentionTick += 1
+            HapticManager.shared.afterUIUpdate {
+                HapticManager.shared.warning()
+            }
         }
     }
 
